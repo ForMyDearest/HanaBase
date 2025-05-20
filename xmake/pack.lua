@@ -8,15 +8,15 @@ if (is_os("windows")) then
     add_defines("_CRT_SECURE_NO_WARNINGS")
     add_defines("_ENABLE_EXTENDED_ALIGNED_STORAGE")
     add_defines("_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR")
-    add_defines("OS_WINDOWS")
+    add_defines("HANA_OS_WINDOWS")
 elseif (is_os("linux")) then
-    add_defines("OS_LINUX")
+    add_defines("HANA_OS_LINUX")
 elseif (is_os("android")) then
-    add_defines("OS_ANDROID")
+    add_defines("HANA_OS_ANDROID")
 elseif (is_os("macosx")) then
-    add_defines("OS_MACOSX")
+    add_defines("HANA_OS_MACOSX")
 elseif (is_os("IOS")) then
-    add_defines("OS_IOS")
+    add_defines("HANA_OS_IOS")
 end
 
 default_unity_batch = 16

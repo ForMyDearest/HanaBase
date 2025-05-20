@@ -144,7 +144,7 @@ namespace hana
 
 #pragma region program_location_impl
 
-#if defined(OS_MACOSX) || defined(OS_IOS)
+#if defined(HANA_OS_MACOSX) || defined(HANA_OS_IOS)
 
 #include <mach-o/dyld.h>
 
@@ -169,7 +169,7 @@ namespace boost
 	}
 }
 
-#elif defined(OS_LINUX) || defined(OS_ANDROID)
+#elif defined(HANA_OS_LINUX) || defined(HANA_OS_ANDROID)
 
 namespace boost
 {
@@ -184,7 +184,7 @@ namespace boost
 
 #pragma region SharedLibrary
 
-#if !defined(OS_MACOSX) && !defined(OS_IOS)
+#if !defined(HANA_OS_MACOSX) && !defined(HANA_OS_IOS)
 #   include <link.h>
 #endif
 
@@ -192,7 +192,7 @@ namespace hana
 {
 	const char8_t* suffix() {
 		// https://sourceforge.net/p/predef/wiki/OperatingSystems/
-#if defined(OS_MACOSX) || defined(OS_IOS)
+#if defined(HANA_OS_MACOSX) || defined(HANA_OS_IOS)
 		return u8".dylib";
 #else
 		return u8".so";
@@ -237,7 +237,7 @@ namespace hana
 			native_mode |= rtld_local;
 		}
 
-#if defined(OS_LINUX) || defined(OS_ANDROID)
+#if defined(HANA_OS_LINUX) || defined(HANA_OS_ANDROID)
 		if (!sl.has_parent_path() && !(native_mode & transLoadMode(search_system_folders))) {
             sl = "." / sl;
         }
