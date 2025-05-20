@@ -82,9 +82,9 @@ namespace hana
 #define HANA_DYNAMIC_MODULE_METADATA(ModuleName) \
 	extern "C" HANA_EXPORTS const char8_t* HANA_JOIN(HANA_META_PREFIX, ModuleName)
 
-#define HANA_IMPLEMENT_DYNAMIC_MODULE(ModuleName, ModuleImplClass)											\
-	extern "C" HANA_EXPORTS hana::IModule* HANA_JOIN(HANA_DYNAMIC_MODULE_CREATION_PRIFIX, ModuleName)() {	\
-		return new ModuleImplClass;																			\
+#define HANA_IMPLEMENT_DYNAMIC_MODULE(ModuleName, ModuleImplClass)													\
+	extern "C" HANA_EXPORTS hana::IDynamicModule* HANA_JOIN(HANA_DYNAMIC_MODULE_CREATION_PRIFIX, ModuleName)() {	\
+		return reinterpret_cast<hana::IDynamicModule*>(new ModuleImplClass);												\
 	}
 
 #define HANA_IMPLEMENT_MODULE_SUBSYSTEM(ModuleName, Subsystem)						\

@@ -135,7 +135,7 @@ namespace hana
 			const bool is_proc_mod = process_symbol_table.has_symbol(meta_symbol.data());
 
 			// maybe nullptr
-			auto* func = static_cast<IModule*(*)()>(process_symbol_table.get_symbol(init_func_name.data()));
+			auto* func = static_cast<IDynamicModule*(*)()>(process_symbol_table.get_symbol(init_func_name.data()));
 			if (hotfix && (is_proc_mod || func)) {
 				LOG_ERROR(u8"Hotfix module ({}) load failed! Reason: module already loaded!", name);
 			}
@@ -150,17 +150,17 @@ namespace hana
 						LOG_ERROR(u8"Shared library ({}) load failed! Reason: {}", filename.u8string(), get_last_error());
 					} else {
 						LOG_TRACE(u8"Load dll ({}) success", filename.u8string());
-						func = static_cast<IModule*(*)()>(sharedLib.get_symbol(init_func_name.data()));
+						func = static_cast<IDynamicModule*(*)()>(sharedLib.get_symbol(init_func_name.data()));
 					}
 				} else if (LoadHotfixModule(&sharedLib, hash, std::move(filename))) {
 					LOG_TRACE(u8"Hotfix module ({}) load success", name);
-					func = static_cast<IModule*(*)()>(sharedLib.get_symbol(init_func_name.data()));
+					func = static_cast<IDynamicModule*(*)()>(sharedLib.get_symbol(init_func_name.data()));
 				}
 			}
 #endif
 
 			if (func) {
-				module = func();
+				module = reinterpret_cast<IModule*>(func());
 			} else {
 				LOG_DEBUG(u8"No user defined symbol: {}", init_func_name);
 				module = new DefaultDynamicModule;
@@ -305,7 +305,7 @@ namespace hana
 				}
 
 				const HString init_name = HString::concat(HANA_MAKE_UTF8(HANA_DYNAMIC_MODULE_CREATION_PRIFIX), this_name);
-				auto* func = static_cast<IModule*(*)()>(lib.get_symbol(init_name.c_str()));
+				auto* func = static_cast<IDynamicModule*(*)()>(lib.get_symbol(init_name.c_str()));
 
 				if (!func) {
 					LOG_ERROR(u8"Hotfix module ({}) load failed!", this_name);

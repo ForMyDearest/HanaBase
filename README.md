@@ -31,3 +31,4 @@ In my test, it has a front-end latency of approximately 75ns, while static fmtlo
 # TODO
 
 * [ ] Fix the bug that log pattern can't support "{{}}"
+* [ ] Frequent hotfixes may result in process crashes
