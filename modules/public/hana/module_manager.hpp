@@ -17,14 +17,6 @@ namespace hana
 		[[nodiscard]] static const IModule* get_module(const char8_t* name) noexcept;
 		[[nodiscard]] static const class Graph* get_dependency_graph() noexcept;
 	};
-
-	struct HANA_BASE_API StaticallyLinkedModuleRegistrant {
-		StaticallyLinkedModuleRegistrant(const char8_t* module_name, IStaticModule*(*func)());
-	};
-
-	struct HANA_BASE_API ModuleSubsystemRegistrant {
-		ModuleSubsystemRegistrant(const char8_t* module_name, const char8_t* subsystem_id, IModuleSubsystem*(*func)());
-	};
 }
 
 #define HANA_META_PREFIX						__hana_module_meta__

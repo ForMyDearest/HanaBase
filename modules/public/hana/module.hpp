@@ -62,6 +62,14 @@ namespace hana
 
 		void* state = nullptr;
 	};
+
+	struct HANA_BASE_API StaticallyLinkedModuleRegistrant {
+		StaticallyLinkedModuleRegistrant(const char8_t* module_name, IStaticModule*(*func)());
+	};
+
+	struct HANA_BASE_API ModuleSubsystemRegistrant {
+		ModuleSubsystemRegistrant(const char8_t* module_name, const char8_t* subsystem_id, IModuleSubsystem*(*func)());
+	};
 }
 
 
