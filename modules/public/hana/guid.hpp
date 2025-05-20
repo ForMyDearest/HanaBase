@@ -192,6 +192,38 @@ namespace hana
 		}
 
 	private:
+		friend struct std::hash<guid_t>;
 		std::array<value_type, 16> data{{0}};
 	};
 }
+
+template<>
+struct std::hash<hana::guid_t> {
+	constexpr size_t operator()(const hana::guid_t& uuid) const noexcept {
+		const uint64_t l =
+				static_cast<uint64_t>(uuid.data[0]) << 56 |
+				static_cast<uint64_t>(uuid.data[1]) << 48 |
+				static_cast<uint64_t>(uuid.data[2]) << 40 |
+				static_cast<uint64_t>(uuid.data[3]) << 32 |
+				static_cast<uint64_t>(uuid.data[4]) << 24 |
+				static_cast<uint64_t>(uuid.data[5]) << 16 |
+				static_cast<uint64_t>(uuid.data[6]) << 8 |
+				static_cast<uint64_t>(uuid.data[7]);
+		const uint64_t h =
+				static_cast<uint64_t>(uuid.data[8]) << 56 |
+				static_cast<uint64_t>(uuid.data[9]) << 48 |
+				static_cast<uint64_t>(uuid.data[10]) << 40 |
+				static_cast<uint64_t>(uuid.data[11]) << 32 |
+				static_cast<uint64_t>(uuid.data[12]) << 24 |
+				static_cast<uint64_t>(uuid.data[13]) << 16 |
+				static_cast<uint64_t>(uuid.data[14]) << 8 |
+				static_cast<uint64_t>(uuid.data[15]);
+
+		const uint64_t hash64 = l ^ h;
+		if constexpr (sizeof(size_t) > 4) {
+			return hash64;
+		} else {
+			return static_cast<uint32_t>(hash64 >> 32) ^ static_cast<uint32_t>(hash64);
+		}
+	}
+};
