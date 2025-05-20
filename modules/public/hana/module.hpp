@@ -72,6 +72,8 @@ namespace hana
 	};
 }
 
+#define HANA_META_PREFIX						__hana_module_meta__
+#define HANA_DYNAMIC_MODULE_CREATION_PRIFIX		__hana_initialize_module__
 
 #define HANA_IMPLEMENT_STATIC_MODULE(ModuleName, ModuleImplClass)							\
 	inline static const hana::StaticallyLinkedModuleRegistrant HanaRegistrant##ModuleName(	\

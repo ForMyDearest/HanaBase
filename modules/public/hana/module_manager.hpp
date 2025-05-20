@@ -18,6 +18,3 @@ namespace hana
 		[[nodiscard]] static const class Graph* get_dependency_graph() noexcept;
 	};
 }
-
-#define HANA_META_PREFIX						__hana_module_meta__
-#define HANA_DYNAMIC_MODULE_CREATION_PRIFIX		__hana_initialize_module__
