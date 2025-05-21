@@ -54,10 +54,15 @@ namespace hana
 #if defined(_WIN32)
 
 		GUID newId;
-		HRESULT hr = CoCreateGuid(&newId);
-
-		if (FAILED(hr)) {
+		if (const HMODULE hOle32 = LoadLibraryA("Ole32.dll"); !hOle32) {
 			return {};
+		} else {
+			auto pfnCoCreateGuid = (HRESULT(*)(GUID*)) GetProcAddress(hOle32, "CoCreateGuid");
+			HRESULT hr = pfnCoCreateGuid(&newId);
+			if (FAILED(hr)) {
+				return {};
+			}
+			FreeLibrary(hOle32);
 		}
 
 		std::array<uint8_t, 16> bytes =

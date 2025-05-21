@@ -31,12 +31,5 @@ do
         end
     end)
 
-    if (is_os("windows")) then
-        add_syslinks("Ole32", { public = true })
-    end
-    if (is_os("macosx")) then
-        add_frameworks("CoreFoundation", { public = true })
-    end
-
     target_end()
 end
