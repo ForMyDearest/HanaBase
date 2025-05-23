@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <hana/iterator.hpp>
+#include <hana/unicode/iterator.hpp>
 
 TEST_CASE("Test Unicode") {
 	using namespace hana::unicode;

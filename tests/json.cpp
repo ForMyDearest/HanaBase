@@ -1,9 +1,9 @@
 #include <doctest/doctest.h>
 
 #define HANA_LOG_ENABLE
-
-#include <hana/json.hpp>
 #include <hana/log.hpp>
+#include <hana/archive/json.hpp>
+
 
 struct JSONTests {
 	JSONTests() {

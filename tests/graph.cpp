@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <hana/graph.hpp>
+#include <hana/graph/graph.hpp>
 
 class TestRDGNode : public hana::GraphNode {
 public:

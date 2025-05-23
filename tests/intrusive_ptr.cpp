@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include <hana/intrusive_ptr.hpp>
+#include <hana/utility/intrusive_ptr.hpp>
 
 struct SPTRIntrusiveTests {
 	template<typename T, typename... Args>

@@ -9,8 +9,8 @@ Foundation for hana
 | Module          |                            Description                             | Reference                                                                                         |
 |-----------------|:------------------------------------------------------------------:|---------------------------------------------------------------------------------------------------|
 | `fmt`           |                   Modern formatter with char8_t                    | [fmt](https://github.com/fmtlib/fmt) (MIT),  [STL](https://github.com/microsoft/STL) (Apache-2.0) |
-| `guid`          |               Cross-platform implementation for GUID               | [stduuid](https://github.com/mariusbancila/stduuid) (MIT)                                         |
-| `json`          |                JSON operatrion with yyjson backend                 |                                                                                                   |
+| `crash`         |               Default crash handler with stacktrace                | [SakuraEngine](https://github.com/SakuraEngine/SakuraEngine) (MIT)                                |
+| `graphviz`      |                       .dot generator for C++                       | [UGraphviz](https://github.com/Ubpa/UGraphviz) (MIT)                                              |
 | `HString`       |         A string compatible with all base character types          | [OpenString](https://github.com/1762757171/OpenString) (MIT)                                      |
 | `LogSystem`     |                    High-performance log system                     | [fmtlog](https://github.com/MengRao/fmtlog) (MIT)                                                 |
 | `ModuleManager` | Load dependency libraries into dependency graphs using JSON format | [SakuraEngine](https://github.com/SakuraEngine/SakuraEngine) (MIT)                                |
@@ -31,4 +31,5 @@ In my test, it has a front-end latency of approximately 75ns, while static fmtlo
 # TODO
 
 * [ ] Fix the bug that log pattern can't support "{{}}"
-* [ ] Frequent hotfixes may result in process crashes
+* [ ] Set up callback interfaces of crash handler for users
+* [ ] Cross-platform completion

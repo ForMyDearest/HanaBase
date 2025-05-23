@@ -1,15 +1,5 @@
 add_requires("doctest 2.4.11")
 
-function TEST(name)
-    target(name)
-    do
-        set_kind("binary")
-        set_group("test")
-        add_deps("HanaBase")
-        add_files(name .. ".cpp")
-    end
-end
-
 function UNIT_TEST(name)
     target(name)
     do
@@ -31,7 +21,3 @@ UNIT_TEST("algorithm")
 UNIT_TEST("string_view")
 UNIT_TEST("intrusive_ptr")
 UNIT_TEST("compressed_pair")
-
-TEST("log")
-
-includes("module/xmake.lua")

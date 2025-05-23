@@ -35,3 +35,4 @@ default_unity_batch = 16
 includes("xmake/compile_flags.lua")
 includes("modules/xmake.lua")
 includes("tests/xmake.lua")
+includes("samples/xmake.lua")

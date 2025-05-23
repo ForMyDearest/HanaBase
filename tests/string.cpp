@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <hana/string.hpp>
+#include <hana/container/string.hpp>
 
 TEST_CASE("Test HString") {
 	using namespace hana;

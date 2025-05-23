@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include <hana/format.hpp>
+#include <hana/archive/format.hpp>
 
 #include <string>
 #include <iterator>

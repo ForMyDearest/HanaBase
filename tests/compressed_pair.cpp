@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include <hana/compressed_pair.hpp>
+#include <hana/utility/compressed_pair.hpp>
 
 namespace test
 {

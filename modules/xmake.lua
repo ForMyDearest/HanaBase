@@ -16,6 +16,7 @@ do
     add_packages("parallel-hashmap")
 
     add_files("private/*.cpp")
+    add_includedirs("private")
     add_includedirs("public", { public = true })
     add_headerfiles("public/(**)")
 
@@ -26,6 +27,7 @@ do
             target:add("defines", "HANA_BASE_API=HANA_IMPORTS", { public = true })
             -- Bad for cmake build
             target:add("defines", "HANA_BASE_API=HANA_EXPORTS")
+            target:add("defines", "HANA_BASE_DLL=")
         else
             target:add("defines", "HANA_BASE_API=", { public = true })
         end

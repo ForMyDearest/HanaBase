@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include <hana/string_view.hpp>
+#include <hana/container/string_view.hpp>
 
 TEST_CASE("Test HStringView") {
 	using namespace hana;

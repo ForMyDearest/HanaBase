@@ -2,8 +2,9 @@
 
 #define HANA_LOG_ENABLE
 #include <hana/log.hpp>
-#include <hana/hash.hpp>
-#include <hana/guid.hpp>
+#include <hana/utility/hash.hpp>
+#include <hana/utility/guid.hpp>
+#include <hana/utility/callstack.hpp>
 
 TEST_CASE("xxhash") {
 	using namespace hana;
@@ -32,6 +33,7 @@ TEST_CASE("type traits") {
 
 TEST_CASE("guid") {
 	using namespace hana;
+
 	constexpr auto g1 = guid_t::from_string(u8"1d29de69-b2b0-44f6-a1aa-4acf070bf8bb");
 	constexpr auto g2 = guid_t::from_string(u8"{1d29de69-b2b0-44f6-a1aa-4acf070bf8bb}");
 	CHECK_EQ(g1.value(), g2.value());
