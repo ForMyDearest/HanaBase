@@ -31,17 +31,16 @@ namespace hana
 
 		static void handle_function(CrashTerminateCode code, void* pExceptionPtrs = nullptr) {
 			auto&& handle = Derived::instance();
-			// unlock for terminate?
-			{
-				std::lock_guard lock(handle.creash_mutex);
-				handle.ctx.reason = code;
+
+			std::lock_guard lock(handle.crash_mutex);
+			handle.ctx.reason = code;
 #ifdef _WIN32
-				if (pExceptionPtrs) handle.ctx.exception_pointers = (_EXCEPTION_POINTERS*) pExceptionPtrs;
+			if (pExceptionPtrs) handle.ctx.exception_pointers = (_EXCEPTION_POINTERS*) pExceptionPtrs;
 #endif
-				for (auto&& cb: handle.callbacks) {
-					cb.callback(&handle.ctx, cb.usr_data);
-				}
+			for (auto&& cb: handle.callbacks) {
+				cb.callback(&handle.ctx, cb.usr_data);
 			}
+
 			handle.terminate_process(code);
 		}
 
@@ -114,7 +113,7 @@ namespace hana
 
 		CrashContext ctx;
 		std::vector<CallbackWrapper> callbacks;
-		std::mutex creash_mutex;
+		std::mutex crash_mutex;
 	};
 
 	inline void init_crash_handle();

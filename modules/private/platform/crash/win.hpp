@@ -29,17 +29,15 @@ namespace hana
 
 		static void internal_handler(CrashContext* context) {
 			if (!context->exception_pointers) context->exception_pointers = (PEXCEPTION_POINTERS) _pxcptinfoptrs;
-
 			auto why = format(u8"Crashed! Reason: {}", crash_code_string(context->reason));
 			// default max_depth?
 			LOG_FATAL(u8"{} \n{}\n", why, get_callstack(get_crash_callstack_begin()));
 			LogSystem::poll();
 
+#ifndef NDEBUG
 			// save crash minidump
 			{
-				char currentPath[1024];
 				SYSTEMTIME localTime;
-				::GetCurrentDirectoryA(MAX_PATH, currentPath);
 				::GetLocalTime(&localTime);
 
 				auto dateTime = format(
@@ -48,19 +46,38 @@ namespace hana
 					localTime.wMinute, localTime.wSecond, localTime.wMilliseconds
 				);
 
-				auto dumpPath = format(u8"{}\\{}-minidump-{}.dmp", currentPath, get_current_process_name(), dateTime);
-				const char* pDumpPath = dumpPath.raw_data();
-
-				HANDLE lhDumpFile = ::CreateFileA(pDumpPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+				auto dumpPath = std::filesystem::current_path() / format(u8"{}-minidump-{}.dmp", get_current_process_name(), dateTime).raw_data();
+				HANDLE lhDumpFile = CreateFileW(dumpPath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 				MINIDUMP_EXCEPTION_INFORMATION loExceptionInfo;
-				loExceptionInfo.ExceptionPointers = context->exception_pointers;
 				loExceptionInfo.ThreadId = ::GetCurrentThreadId();
-				loExceptionInfo.ClientPointers = TRUE;
+				loExceptionInfo.ClientPointers = true;
+				loExceptionInfo.ExceptionPointers = context->exception_pointers;
+				if (!context->exception_pointers) {
+					EXCEPTION_RECORD exceptionRecord = {};
+					CONTEXT contextRecord = {};
 
-				MiniDumpWriteDump(::GetCurrentProcess(), ::GetCurrentProcessId(), lhDumpFile, MiniDumpNormal, &loExceptionInfo, nullptr, nullptr);
+					RtlCaptureContext(&contextRecord);
+					// exceptionRecord.ExceptionCode = STATUS_INVALID_PARAMETER;
+					exceptionRecord.ExceptionAddress = _ReturnAddress();
+					EXCEPTION_POINTERS exceptionPointers = {&exceptionRecord, &contextRecord};
+					loExceptionInfo.ExceptionPointers = &exceptionPointers;
+				} else {
+					loExceptionInfo.ExceptionPointers = context->exception_pointers;
+				}
+
+				MiniDumpWriteDump(
+					::GetCurrentProcess(),
+					::GetCurrentProcessId(),
+					lhDumpFile,
+					MiniDumpNormal,
+					&loExceptionInfo,
+					nullptr,
+					nullptr
+				);
 				::CloseHandle(lhDumpFile);
 			}
+#endif
 
 			// show message box
 			SharedLibrary lib;
@@ -140,9 +157,8 @@ namespace hana
 
 			// Catch new operator memory allocation exceptions
 			_set_new_mode(1); // Force malloc() to call new handler too
-			prev_new_handler = _set_new_handler([](size_t) {
+			prev_new_handler = std::set_new_handler([] {
 				handle_function(OpNewError);
-				return 0;
 			});
 
 			// Catch invalid parameter exceptions.
@@ -158,7 +174,7 @@ namespace hana
 		void UnsetProcessSignalHandlers() {
 			if (prev_exception_filter) SetUnhandledExceptionFilter(prev_exception_filter);
 			if (prev_purec) _set_purecall_handler(prev_purec);
-			if (prev_new_handler) _set_new_handler(prev_new_handler);
+			if (prev_new_handler) std::set_new_handler(prev_new_handler);
 			if (prev_invpar) _set_invalid_parameter_handler(prev_invpar);
 
 			base::UnsetThreadSignalHandlers();
@@ -179,7 +195,7 @@ namespace hana
 		// process signal
 		LPTOP_LEVEL_EXCEPTION_FILTER prev_exception_filter = nullptr;
 		_purecall_handler prev_purec = nullptr;
-		_PNH prev_new_handler = nullptr;
+		std::new_handler prev_new_handler = nullptr;
 		_invalid_parameter_handler prev_invpar = nullptr;
 
 		// thread signal
