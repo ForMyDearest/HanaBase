@@ -92,5 +92,5 @@ int main(int argc, char8_t** argv) {
 	ModuleManager::load(u8"HanaBase", true);
 
 	LogSystem::set_header_pattern(u8"[{l}] {M}");
-	SegFault::run();
+	Terminate::run();
 }

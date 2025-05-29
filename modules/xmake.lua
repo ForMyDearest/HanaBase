@@ -5,7 +5,7 @@ add_requires("yyjson", { configs = { shared = true } })
 
 target("HanaBase")
 do
-    set_kind("$(kind)")
+    set_kind("shared")
     set_group("01.libraries")
     add_rules("c++.unity_build", { batchsize = default_unity_batch })
 
@@ -23,14 +23,9 @@ do
     after_load(function(target, opt)
         import("core.project.project")
         target:add("defines", "HANA_LOG_ENABLE")
-        if (target:get("kind") == "shared") then
-            target:add("defines", "HANA_BASE_API=HANA_IMPORTS", { public = true })
-            -- Bad for cmake build
-            target:add("defines", "HANA_BASE_API=HANA_EXPORTS")
-            target:add("defines", "HANA_BASE_DLL=")
-        else
-            target:add("defines", "HANA_BASE_API=", { public = true })
-        end
+        target:add("defines", "HANA_BASE_API=HANA_IMPORTS", { public = true })
+        -- Bad for cmake build
+        target:add("defines", "HANA_BASE_API=HANA_EXPORTS")
     end)
 
     target_end()

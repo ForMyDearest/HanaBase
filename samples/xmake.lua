@@ -1,5 +1,5 @@
 function SAMPLE(name)
-    target(name)
+    target("sample." .. name)
     do
         set_kind("binary")
         set_group("sample")
@@ -7,7 +7,6 @@ function SAMPLE(name)
         add_files(name .. ".cpp")
     end
 end
-
 
 SAMPLE("log")
 SAMPLE("crash")

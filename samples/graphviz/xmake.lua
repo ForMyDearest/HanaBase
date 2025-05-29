@@ -1,5 +1,5 @@
 function GRAPHVIZ_SAMPLE(name)
-    target("graphviz." .. name)
+    target("sample.graphviz." .. name)
     do
         set_kind("binary")
         set_group("sample/graphviz")

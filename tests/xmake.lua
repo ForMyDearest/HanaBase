@@ -1,7 +1,7 @@
-add_requires("doctest 2.4.11")
+add_requires("doctest")
 
 function UNIT_TEST(name)
-    target(name)
+    target("unit_test." .. name)
     do
         set_kind("binary")
         set_group("unit_test")
