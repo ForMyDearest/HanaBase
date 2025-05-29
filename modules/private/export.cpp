@@ -5,7 +5,7 @@
 
 namespace hana
 {
-	struct HanaBaseModule : IHotfixModule {
+	struct HanaBaseModule : IDynamicModule {
 		void on_load(int argc, char8_t** argv) override {
 			init_crash_handle();
 			LOG_INFO(u8"hana base module loaded");
@@ -16,9 +16,6 @@ namespace hana
 			shutdown_crash_handle();
 			LogSystem::poll();
 		}
-
-		void on_reload_begin() override {}
-		void on_reload_finish() override {}
 	};
 }
 
