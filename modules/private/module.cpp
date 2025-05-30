@@ -14,7 +14,6 @@ namespace hana
 		void on_unload() override {
 			LOG_INFO(u8"hana base module unloaded");
 			shutdown_crash_handle();
-			LogSystem::poll();
 		}
 	};
 }
