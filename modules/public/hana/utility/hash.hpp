@@ -86,19 +86,19 @@ namespace hana::internal
 		template<typename T>
 		static constexpr uint32_t finalize(const uint32_t h, const T* p, uint32_t len) noexcept {
 			return
-					(len >= 4)
-						? xxh32::finalize(std::rotl(h + (internal::read32(p) * PRIME3), 17) * PRIME4, p + 4, len - 4)
-						: (len > 0)
-							? xxh32::finalize(std::rotl(h + (uint8_t(*p) * PRIME5), 11) * PRIME1, p + 1, len - 1)
-							: avalanche(h);
+					(len >= 4) ?
+						xxh32::finalize(std::rotl(h + (internal::read32(p) * PRIME3), 17) * PRIME4, p + 4, len - 4) :
+						(len > 0) ?
+							xxh32::finalize(std::rotl(h + (uint8_t(*p) * PRIME5), 11) * PRIME1, p + 1, len - 1) :
+							avalanche(h);
 		}
 
 		template<typename T>
 		static constexpr uint32_t h16bytes(const T* p, uint32_t len, const uint32_t v1, const uint32_t v2, const uint32_t v3, const uint32_t v4) noexcept {
 			return
-					(len >= 16)
-						? xxh32::h16bytes(p + 16, len - 16, xxh32::fetch32(p, v1), xxh32::fetch32(p + 4, v2), xxh32::fetch32(p + 8, v3), xxh32::fetch32(p + 12, v4))
-						: std::rotl(v1, 1) + std::rotl(v2, 7) + std::rotl(v3, 12) + std::rotl(v4, 18);
+					(len >= 16) ?
+						xxh32::h16bytes(p + 16, len - 16, xxh32::fetch32(p, v1), xxh32::fetch32(p + 4, v2), xxh32::fetch32(p + 8, v3), xxh32::fetch32(p + 12, v4)) :
+						std::rotl(v1, 1) + std::rotl(v2, 7) + std::rotl(v3, 12) + std::rotl(v4, 18);
 		}
 
 		template<typename T>
@@ -481,7 +481,7 @@ namespace hana
 	public:
 		/*! @brief If size of the pointer type is 8 bits, this function is constexpr. */
 		template<typename T>
-		[[nodiscard]] constexpr uint32_t fnv1a_hash32(const T* input, const size_t length) noexcept {
+		[[nodiscard]] static constexpr uint32_t fnv1a_hash32(const T* input, const size_t length) noexcept {
 			if constexpr (internal::constexpr_xxh3::ByteType<T>) {
 				auto hash = fnv1a_32_params::offset;
 				for (auto i = 0; i < length; i++) {
@@ -495,7 +495,7 @@ namespace hana
 
 		/*! @brief If size of the pointer type is 8 bits, this function is constexpr. */
 		template<typename T>
-		[[nodiscard]] constexpr uint64_t fnv1a_hash64(const T* input, const size_t length) noexcept {
+		[[nodiscard]] static constexpr uint64_t fnv1a_hash64(const T* input, const size_t length) noexcept {
 			if constexpr (internal::constexpr_xxh3::ByteType<T>) {
 				auto hash = fnv1a_64_params::offset;
 				for (auto i = 0; i < length; i++) {
@@ -508,17 +508,17 @@ namespace hana
 		}
 
 		template<internal::constexpr_xxh3::BytesType Bytes>
-		[[nodiscard]] constexpr uint32_t fnv1a_hash32(const Bytes& input) noexcept {
+		[[nodiscard]] static constexpr uint32_t fnv1a_hash32(const Bytes& input) noexcept {
 			return Fnv1aHash::fnv1a_hash32(std::data(input), internal::constexpr_xxh3::bytes_size(input));
 		}
 
 		template<internal::constexpr_xxh3::BytesType Bytes>
-		[[nodiscard]] constexpr uint64_t fnv1a_hash64(const Bytes& input) noexcept {
+		[[nodiscard]] static constexpr uint64_t fnv1a_hash64(const Bytes& input) noexcept {
 			return Fnv1aHash::fnv1a_hash64(std::data(input), internal::constexpr_xxh3::bytes_size(input));
 		}
 
 		template<typename T>
-		[[nodiscard]] constexpr size_t fnv1a_hash(const T* input, const size_t length) noexcept {
+		[[nodiscard]] static constexpr size_t fnv1a_hash(const T* input, const size_t length) noexcept {
 			if constexpr (sizeof(size_t) == 4) {
 				return Fnv1aHash::fnv1a_hash32(input, length);
 			} else {
@@ -527,7 +527,7 @@ namespace hana
 		}
 
 		template<internal::constexpr_xxh3::BytesType Bytes>
-		[[nodiscard]] constexpr size_t fnv1a_hash(const Bytes& input) noexcept {
+		[[nodiscard]] static constexpr size_t fnv1a_hash(const Bytes& input) noexcept {
 			return Fnv1aHash::fnv1a_hash(std::data(input), internal::constexpr_xxh3::bytes_size(input));
 		}
 
