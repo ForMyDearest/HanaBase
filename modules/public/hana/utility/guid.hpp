@@ -193,7 +193,7 @@ namespace hana
 
 	private:
 		friend struct std::hash<guid_t>;
-		std::array<value_type, 16> data{{0}};
+		std::array<value_type, 16> data;
 	};
 }
 
