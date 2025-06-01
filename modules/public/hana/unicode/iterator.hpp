@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hana/utility/iterator.hpp"
 #include "hana/unicode/algorithm.hpp"
+#include "hana/container/iterator.hpp"
 #include "hana/utility/type_traits.hpp"
 
 #include <string>
