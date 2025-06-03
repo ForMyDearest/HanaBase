@@ -1,10 +1,11 @@
 #include <hana/log.hpp>
+#include <hana/platform/thread.hpp>
 
 #include <array>
 #include <mutex>
 #include <thread>
 #include <vector>
-
+#include <filesystem>
 
 #ifdef _MSC_VER
 #	include <intrin.h>
@@ -30,7 +31,6 @@ namespace hana
 {
 	static constexpr HStringView default_pattern = u8"[{m}] [{L}] [{l}] {M}";
 	static constexpr LogSystem::TimestampPrecision default_precision = LogSystem::TimestampPrecision::ms;
-	static constexpr HStringView default_thread_name = u8"unnamed thread";
 	static constexpr int64_t default_flush_delay = 3000000000;
 	static constexpr uint32_t default_flush_buf_size = 8 * 1024;
 }
@@ -280,7 +280,7 @@ namespace hana
 		SPSCVarQueueOPT varq;
 		bool shouldDeallocate = false;
 		uint32_t tid;
-		HStringView name = default_thread_name;
+		HString name;
 	};
 
 	template<size_t SIZE = 1000, typename Allocator = std::allocator<char8_t>>
@@ -451,6 +451,15 @@ namespace hana
 		size_t fpos = 0; // file position of membuf, used only when manageFp == true
 
 		void setLogFile(const char8_t* filename, bool truncate = false) {
+			std::filesystem::path dirPath = std::filesystem::path(filename).parent_path();
+
+			if (!dirPath.empty() && !std::filesystem::exists(dirPath)) {
+				if (!std::filesystem::create_directories(dirPath)) {
+					fmt::report_error(u8"Error CreateDirectories");
+					return;
+				}
+			}
+
 			FILE* newFp = fopen(reinterpret_cast<const char*>(filename), truncate ? "w" : "a");
 			if (!newFp) {
 				std::u8string err;
@@ -599,19 +608,6 @@ namespace hana
 
 #pragma region timestamp
 
-		struct X {
-			Str<4> year;
-			char8_t dash1 = '-';
-			Str<2> month;
-			char8_t dash2 = '-';
-			Str<2> day;
-			char8_t space = ' ';
-			Str<2> hour;
-			char8_t colon1 = ':';
-			Str<2> minute;
-			char8_t colon2 = ':';
-			Str<2> second;
-		};
 		Str<4> year;
 		char8_t dash1 = '-';
 		Str<2> month;
@@ -674,6 +670,7 @@ namespace hana
 		void preallocate() {
 			if (threadBuffer) return;
 			threadBuffer = new ThreadBuffer();
+			threadBuffer->name = Thread::get_current_name();
 #ifdef _WIN32
 			threadBuffer->tid = static_cast<uint32_t>(::GetCurrentThreadId());
 #else
@@ -682,11 +679,6 @@ namespace hana
 
 			std::lock_guard guard(bufferMutex);
 			threadBuffers.push_back(threadBuffer);
-		}
-
-		void setThreadName(HStringView name) {
-			preallocate();
-			threadBuffer->name = name;
 		}
 
 		MsgHeader* allocMsg(uint32_t size, bool q_full_cb) {
@@ -944,10 +936,6 @@ namespace hana
 
 	void LogSystem::set_header_pattern(HStringView pattern) {
 		Logger::instance().setHeaderPattern(pattern);
-	}
-
-	void LogSystem::set_thread_name(HStringView name) {
-		Logger::instance().setThreadName(name);
 	}
 
 	void LogSystem::set_timestamp_precision(TimestampPrecision precision) {

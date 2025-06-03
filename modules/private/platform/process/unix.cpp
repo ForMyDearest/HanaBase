@@ -19,9 +19,7 @@ namespace hana
 		pid_t pid;
 	};
 
-	ProcessHandle* start_process(std::span<const char8_t*> args, const char8_t* stdout_file) {
-		using namespace hana;
-
+	Process* Process::start(std::span<const char8_t*> args, const char8_t* stdout_file) noexcept {
 		// int errcode = system(cmd.c_str()); (void)errcode;
 		extern char** environ; // provided by libc
 		pid_t ChildPid = -1;
@@ -86,10 +84,11 @@ namespace hana
 
 		auto* result = new ProcessHandle;
 		result->pid = ChildPid;
-		return result;
+		return reinterpret_cast<Process*>(result);
 	}
 
-	uint64_t wait_process(const ProcessHandle* handle) noexcept {
+	uint64_t Process::wait() noexcept {
+		auto* handle = reinterpret_cast<ProcessHandle*>(this);
 		const auto pid = handle->pid;
 		delete handle;
 		int status;
@@ -102,15 +101,15 @@ namespace hana
 		return -1;
 	}
 
-	uint64_t get_process_id(const ProcessHandle* handle) noexcept {
-		return handle->pid;
+	uint64_t Process::get_pid() const noexcept {
+		return reinterpret_cast<const ProcessHandle*>(this)->pid;
 	}
 
-	uint64_t get_current_process_id() noexcept {
+	uint64_t Process::get_current_pid() noexcept {
 		return _getpid();
 	}
 
-	const char8_t* get_current_process_name() noexcept {
+	const char8_t* Process::get_current_name() noexcept {
 #if defined(__APPLE__) || defined(__FreeBSD__)
 		return (const char8_t*)getprogname();
 #elif defined(_GNU_SOURCE)

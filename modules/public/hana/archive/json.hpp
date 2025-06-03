@@ -8,19 +8,15 @@ namespace hana
 		enum ErrorCode: uint8_t {
 			OK = 0,
 
-			UnknownError,      // RW
-			NoOpenScope,       // RW
-			ScopeTypeMismatch, // RW
+			UNKNOWN_ERROR,       // RW
+			NO_OPEN_SCOPE,       // RW
+			SCOPE_TYPE_MISMATCH, // RW
 
-			EmptyObjectFieldKey, // RW
-			ArrayElementWithKey, // RW
-			RootObjectWithKey,   // RW
+			EMPTY_OBJECT_FIELD_KEY, // RW
+			ARRAY_ELEMENT_WITH_KEY, // RW
+			ROOT_OBJECT_WITH_KEY,   // RW
 
-			PresetKeyNotConsumedYet, // RW
-			PresetKeyIsEmpty,        // RW
-
-			KeyNotFound,      // R
-			UnknownTypeToRead // R
+			KEY_NOT_FOUND, // R
 		} result;
 
 		constexpr operator bool() const noexcept { return result == OK; }

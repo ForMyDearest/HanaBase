@@ -1,4 +1,4 @@
-add_requires("doctest")
+add_requires("doctest 2.4.11")
 
 function UNIT_TEST(name)
     target("unit_test." .. name)

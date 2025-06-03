@@ -13,7 +13,7 @@ namespace hana
 		HANDLE stdOut = nullptr;
 	};
 
-	ProcessHandle* start_process(std::span<const char8_t*> args, const char8_t* stdout_file) {
+	Process* Process::start(std::span<const char8_t*> args, const char8_t* stdout_file) noexcept {
 		auto iter = args.begin();
 		auto commandLine = HString::concat(u8"\"", *iter, u8"\"");
 		while (++iter != args.end()) commandLine.append(" ").append(*iter);
@@ -60,10 +60,11 @@ namespace hana
 		auto* result = new ProcessHandle;
 		result->processInfo = processInfo;
 		result->stdOut = stdOut;
-		return result;
+		return reinterpret_cast<Process*>(result);
 	}
 
-	uint64_t wait_process(const ProcessHandle* handle) noexcept {
+	uint64_t Process::wait() noexcept {
+		auto* handle = reinterpret_cast<ProcessHandle*>(this);
 		WaitForSingleObject(handle->processInfo.hProcess, INFINITE);
 		DWORD exitCode;
 		GetExitCodeProcess(handle->processInfo.hProcess, &exitCode);
@@ -78,15 +79,15 @@ namespace hana
 		return exitCode;
 	}
 
-	uint64_t get_process_id(const ProcessHandle* handle) noexcept {
-		return handle->processInfo.dwProcessId;
+	uint64_t Process::get_pid() const noexcept {
+		return reinterpret_cast<const ProcessHandle*>(this)->processInfo.dwProcessId;
 	}
 
-	uint64_t get_current_process_id() noexcept {
+	uint64_t Process::get_current_pid() noexcept {
 		return GetCurrentProcessId();
 	}
 
-	const char8_t* get_current_process_name() noexcept {
+	const char8_t* Process::get_current_name() noexcept {
 		DWORD fullpath_size_ = 1024;
 		static char8_t fullpath_[1024] = {0};
 		static char8_t pname_[64] = {0};

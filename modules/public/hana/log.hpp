@@ -103,9 +103,6 @@ namespace hana
 		// TODO : fix bug ( not support character '{' )
 		static void set_header_pattern(HStringView pattern);
 
-		// Set a name for current thread, it'll be shown in {t} part in header pattern
-		static void set_thread_name(HStringView name);
-
 		static void set_timestamp_precision(TimestampPrecision precision);
 
 		static void vlog(const char8_t* location, const char8_t* function, LogLevel level, HStringView fmt, fmt::format_args args);

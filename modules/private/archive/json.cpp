@@ -44,7 +44,7 @@ namespace hana
 
 			if (stack.empty()) {
 				if (!key.empty()) {
-					return RootObjectWithKey;
+					return ROOT_OBJECT_WITH_KEY;
 				}
 
 				yyjson_mut_doc_set_root(document, obj);
@@ -55,7 +55,7 @@ namespace hana
 			const auto level = stack.back();
 			if (level.type == Level::kArray) {
 				if (!key.empty()) {
-					return ArrayElementWithKey;
+					return ARRAY_ELEMENT_WITH_KEY;
 				}
 
 				if (yyjson_mut_arr_add_val(level.value, obj)) {
@@ -64,7 +64,7 @@ namespace hana
 				}
 			} else {
 				if (key.empty()) {
-					return EmptyObjectFieldKey;
+					return EMPTY_OBJECT_FIELD_KEY;
 				}
 
 				const char* ckey = CStringBuild(document, key);
@@ -74,12 +74,12 @@ namespace hana
 				}
 			}
 
-			return UnknownError;
+			return UNKNOWN_ERROR;
 		}
 
 		JsonResult start_array(HStringView key) {
 			if (stack.empty()) {
-				return NoOpenScope;
+				return NO_OPEN_SCOPE;
 			}
 
 			yyjson_mut_val* arr = yyjson_mut_arr(document);
@@ -88,12 +88,12 @@ namespace hana
 
 			if (type == Level::kArray) {
 				if (!key.empty()) {
-					return ArrayElementWithKey;
+					return ARRAY_ELEMENT_WITH_KEY;
 				}
 				success = yyjson_mut_arr_add_val(array, arr);
 			} else if (type == Level::kObject) {
 				if (key.empty()) {
-					return EmptyObjectFieldKey;
+					return EMPTY_OBJECT_FIELD_KEY;
 				}
 				const char* ckey = CStringBuild(document, key);
 				success = yyjson_mut_obj_add_val(document, array, ckey, arr);
@@ -101,15 +101,15 @@ namespace hana
 
 			stack.emplace_back(arr, Level::kArray);
 			if (success) return {};
-			return UnknownError;
+			return UNKNOWN_ERROR;
 		}
 
 		JsonResult end(Level::EType type) noexcept {
 			if (stack.empty()) {
-				return NoOpenScope;
+				return NO_OPEN_SCOPE;
 			}
 			if (stack.back().type != type) {
-				return ScopeTypeMismatch;
+				return SCOPE_TYPE_MISMATCH;
 			}
 			stack.pop_back();
 			return {};
@@ -133,7 +133,7 @@ namespace hana
 		template<typename T, typename... Args>
 		JsonResult json_write(HStringView key, T value, Args&&... args) {
 			if (stack.empty()) {
-				return NoOpenScope;
+				return NO_OPEN_SCOPE;
 			}
 
 			const auto level = stack.back();
@@ -141,7 +141,7 @@ namespace hana
 
 			if (level.type == Level::kObject) {
 				if (key.empty()) {
-					return EmptyObjectFieldKey;
+					return EMPTY_OBJECT_FIELD_KEY;
 				}
 				const char* ckey = CStringBuild(document, key);
 
@@ -158,7 +158,7 @@ namespace hana
 				}
 			} else if (level.type == Level::kArray) {
 				if (!key.empty()) {
-					return ArrayElementWithKey;
+					return ARRAY_ELEMENT_WITH_KEY;
 				}
 
 				if constexpr (std::is_same_v<T, bool>) {
@@ -176,7 +176,7 @@ namespace hana
 			if (success) {
 				return {};
 			}
-			return UnknownError;
+			return UNKNOWN_ERROR;
 		}
 
 		template<typename T, typename... Args>
@@ -184,7 +184,7 @@ namespace hana
 			using U = std::decay_t<T>;
 
 			if (stack.empty()) {
-				return NoOpenScope;
+				return NO_OPEN_SCOPE;
 			}
 			yyjson_mut_val* arr = nullptr;
 
@@ -205,13 +205,13 @@ namespace hana
 
 			if (level.type == Level::kArray) {
 				if (!key.empty()) {
-					return ArrayElementWithKey;
+					return ARRAY_ELEMENT_WITH_KEY;
 				}
 
 				success = yyjson_mut_arr_add_val(level.value, arr);
 			} else if (level.type == Level::kObject) {
 				if (key.empty()) {
-					return EmptyObjectFieldKey;
+					return EMPTY_OBJECT_FIELD_KEY;
 				}
 				const char* ckey = CStringBuild(document, key);
 				success = yyjson_mut_obj_add_val(document, level.value, ckey, arr);
@@ -221,7 +221,7 @@ namespace hana
 				stack.emplace_back(arr, Level::kArray);
 				return {};
 			}
-			return UnknownError;
+			return UNKNOWN_ERROR;
 		}
 	};
 
@@ -257,12 +257,12 @@ namespace hana
 		JsonResult start_object(HStringView key) {
 			if (stack.empty()) {
 				if (!key.empty()) {
-					return RootObjectWithKey;
+					return ROOT_OBJECT_WITH_KEY;
 				}
 
 				auto obj = yyjson_doc_get_root(document);
 				if (yyjson_get_type(obj) != YYJSON_TYPE_OBJ) {
-					return ScopeTypeMismatch;
+					return SCOPE_TYPE_MISMATCH;
 				}
 
 				stack.emplace(obj, Level::kObject);
@@ -274,16 +274,16 @@ namespace hana
 
 			if (parent_type == YYJSON_TYPE_ARR) {
 				if (!key.empty()) {
-					return ArrayElementWithKey;
+					return ARRAY_ELEMENT_WITH_KEY;
 				}
 
 				auto obj = yyjson_arr_get(parent, stack.top().index++);
 				if (!obj) {
-					return KeyNotFound;
+					return KEY_NOT_FOUND;
 				}
 
 				if (yyjson_get_type(obj) != YYJSON_TYPE_OBJ) {
-					return ScopeTypeMismatch;
+					return SCOPE_TYPE_MISMATCH;
 				}
 
 				stack.emplace(obj, Level::kObject);
@@ -292,28 +292,28 @@ namespace hana
 
 			if (parent_type == YYJSON_TYPE_OBJ) {
 				if (key.empty()) {
-					return EmptyObjectFieldKey;
+					return EMPTY_OBJECT_FIELD_KEY;
 				}
 
 				auto obj = yyjson_obj_get(parent, reinterpret_cast<const char*>(key.data()));
 				if (!obj) {
-					return KeyNotFound;
+					return KEY_NOT_FOUND;
 				}
 
 				if (yyjson_get_type(obj) != YYJSON_TYPE_OBJ) {
-					return ScopeTypeMismatch;
+					return SCOPE_TYPE_MISMATCH;
 				}
 
 				stack.emplace(obj, Level::kObject);
 				return {};
 			}
 
-			return UnknownError;
+			return UNKNOWN_ERROR;
 		}
 
 		JsonResult start_array(HStringView key, size_t& count) {
 			if (stack.empty()) {
-				return NoOpenScope;
+				return NO_OPEN_SCOPE;
 			}
 
 			auto parent = stack.top().value;
@@ -321,16 +321,16 @@ namespace hana
 
 			if (parent_type == YYJSON_TYPE_ARR) {
 				if (!key.empty()) {
-					return ArrayElementWithKey;
+					return ARRAY_ELEMENT_WITH_KEY;
 				}
 
 				auto arr = yyjson_arr_get(parent, stack.top().index++);
 				if (!arr) {
-					return KeyNotFound;
+					return KEY_NOT_FOUND;
 				}
 
 				if (yyjson_get_type(arr) != YYJSON_TYPE_ARR) {
-					return ScopeTypeMismatch;
+					return SCOPE_TYPE_MISMATCH;
 				}
 
 				stack.emplace(arr, Level::kArray);
@@ -340,15 +340,15 @@ namespace hana
 
 			if (parent_type == YYJSON_TYPE_OBJ) {
 				if (key.empty()) {
-					return EmptyObjectFieldKey;
+					return EMPTY_OBJECT_FIELD_KEY;
 				}
 				auto arr = yyjson_obj_get(parent, reinterpret_cast<const char*>(key.data()));
 				if (!arr) {
-					return KeyNotFound;
+					return KEY_NOT_FOUND;
 				}
 
 				if (yyjson_get_type(arr) != YYJSON_TYPE_ARR) {
-					return ScopeTypeMismatch;
+					return SCOPE_TYPE_MISMATCH;
 				}
 
 				stack.emplace(arr, Level::kArray);
@@ -356,15 +356,15 @@ namespace hana
 				return {};
 			}
 
-			return UnknownError;
+			return UNKNOWN_ERROR;
 		}
 
 		JsonResult end(Level::EType type) noexcept {
 			if (stack.empty()) {
-				return NoOpenScope;
+				return NO_OPEN_SCOPE;
 			}
 			if (stack.top().type != type) {
-				return ScopeTypeMismatch;
+				return SCOPE_TYPE_MISMATCH;
 			}
 			stack.pop();
 			return {};
@@ -380,11 +380,11 @@ namespace hana
 
 		JsonResult check_scope() const noexcept {
 			if (stack.empty()) {
-				return NoOpenScope;
+				return NO_OPEN_SCOPE;
 			}
 
 			if (stack.top().type != Level::kArray) {
-				return ScopeTypeMismatch;
+				return SCOPE_TYPE_MISMATCH;
 			}
 
 			return {};
@@ -393,7 +393,7 @@ namespace hana
 		template<typename T>
 		JsonResult json_read(HStringView key, T& value) {
 			if (stack.empty()) {
-				return NoOpenScope;
+				return NO_OPEN_SCOPE;
 			}
 
 			auto type = stack.top().type;
@@ -403,21 +403,21 @@ namespace hana
 
 			if (type == Level::kObject) {
 				if (key.empty()) {
-					return EmptyObjectFieldKey;
+					return EMPTY_OBJECT_FIELD_KEY;
 				}
 
 				found = yyjson_obj_get(parent, ckey);
 				if (!found) {
-					return KeyNotFound;
+					return KEY_NOT_FOUND;
 				}
 			} else if (type == Level::kArray) {
 				if (!key.empty()) {
-					return ArrayElementWithKey;
+					return ARRAY_ELEMENT_WITH_KEY;
 				}
 
 				found = yyjson_arr_get(parent, stack.top().index++);
 				if (!found) {
-					return KeyNotFound;
+					return KEY_NOT_FOUND;
 				}
 			}
 

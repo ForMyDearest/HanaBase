@@ -46,7 +46,7 @@ namespace hana
 					localTime.wMinute, localTime.wSecond, localTime.wMilliseconds
 				);
 
-				auto dumpPath = std::filesystem::current_path() / format(u8"{}-minidump-{}.dmp", get_current_process_name(), dateTime).raw_data();
+				auto dumpPath = std::filesystem::current_path() / format(u8"{}-minidump-{}.dmp", Process::get_current_name(), dateTime).raw_data();
 				HANDLE lhDumpFile = CreateFileW(dumpPath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
 				MINIDUMP_EXCEPTION_INFORMATION loExceptionInfo;
