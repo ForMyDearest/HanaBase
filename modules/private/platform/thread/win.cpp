@@ -19,8 +19,6 @@ namespace hana
 		THREAD_PRIORITY_TIME_CRITICAL
 	};
 
-	static_assert(std::size(priorities) == Thread::Priority::TIME_CRITICAL + 1);
-
 	unsigned WINAPI ThreadFunctionStatic(void* data) {
 		const auto* desc = static_cast<Thread::Description*>(data);
 		desc->func(desc->ctx);
@@ -51,8 +49,8 @@ namespace hana
 		return reinterpret_cast<const char8_t*>(thread_name);
 	}
 
-	Thread::Priority Thread::set_priority(Priority pr) noexcept {
-		return SetThreadPriority(this, priorities[pr]) ? pr : static_cast<Priority>(GetThreadPriority(this));
+	ThreadPriority Thread::set_priority(ThreadPriority pr) noexcept {
+		return SetThreadPriority(this, priorities[static_cast<int>(pr)]) ? pr : static_cast<ThreadPriority>(GetThreadPriority(this));
 	}
 
 	void Thread::set_affinity(size_t affinity_mask) noexcept {
