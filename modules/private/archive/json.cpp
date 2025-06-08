@@ -1,10 +1,10 @@
+#include "yyjson/yyjson.c"
+
 #include <hana/log.hpp>
 #include <hana/archive/json.hpp>
 
 #include <stack>
 #include <vector>
-
-#include <yyjson.h>
 
 namespace hana
 {

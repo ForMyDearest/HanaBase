@@ -542,7 +542,7 @@ namespace hana::graphviz
 		__count__
 	};
 
-	struct HANA_BASE_API Node {
+	struct HANA_NOVTABLE Node {
 		virtual ~Node() noexcept = default;
 
 		virtual Node* add_attribute(NodeAttr key, HStringView value) noexcept = 0;
@@ -550,7 +550,7 @@ namespace hana::graphviz
 		virtual Node* clear_attributes() noexcept = 0;
 	};
 
-	struct HANA_BASE_API Edge {
+	struct HANA_NOVTABLE Edge {
 		virtual ~Edge() noexcept = default;
 
 		virtual Edge* add_attribute(EdgeAttr key, HStringView value) noexcept = 0;
@@ -561,7 +561,7 @@ namespace hana::graphviz
 		virtual Edge* reset_ports() noexcept = 0;
 	};
 
-	struct HANA_BASE_API Subgraph {
+	struct HANA_NOVTABLE Subgraph {
 		virtual ~Subgraph() noexcept = default;
 
 		virtual Subgraph* attach_node(const Node* node) noexcept = 0;
@@ -589,7 +589,7 @@ namespace hana::graphviz
 		virtual Subgraph* clear_edge_attributes() noexcept = 0;
 	};
 
-	struct HANA_BASE_API Graph {
+	struct HANA_NOVTABLE Graph {
 		virtual ~Graph() noexcept = default;
 
 		virtual Graph* attach_node(const Node* node) noexcept = 0;
@@ -619,7 +619,7 @@ namespace hana::graphviz
 		virtual void dump(HStringView filename, bool is_digraph) const noexcept = 0;
 	};
 
-	struct HANA_BASE_API Registry {
+	struct HANA_BASE_API HANA_NOVTABLE Registry {
 		static std::unique_ptr<Registry> create() noexcept;
 
 		virtual ~Registry() noexcept = default;

@@ -1,7 +1,6 @@
 ﻿add_requires("cr")
+add_requires("xxhash")
 add_requires("parallel-hashmap")
-add_requires("xxhash", { configs = { shared = true } })
-add_requires("yyjson", { configs = { shared = true } })
 
 target("HanaBase")
 do
@@ -12,7 +11,6 @@ do
     add_deps("compile-flags", { public = true })
     add_packages("cr")
     add_packages("xxhash")
-    add_packages("yyjson")
     add_packages("parallel-hashmap")
 
     add_files("private/*.cpp")
