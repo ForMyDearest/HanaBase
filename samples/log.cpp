@@ -22,31 +22,29 @@ void runBenchmark() {
 }
 
 int main() {
-	// using namespace hana;
-	//
-	// std::vector<Thread*> ts;
-	//
-	// LogSystem::set_header_pattern(u8"[{t} {T}] {M}");
-	//
-	// ts.emplace_back(Thread::init({
-	// 	.func = [](void*) {
-	// 		Thread::set_current_name(u8"thread1");
-	//
-	// 		LOG_INFO(u8"124");
-	// 	}
-	// }));
-	//
-	// ts.emplace_back(Thread::init({
-	// 	.func = [](void*) {
-	// 		Thread::set_current_name(u8"thread2");
-	// 		LOG_INFO(u8"222");
-	// 	}
-	// }));
-	//
-	// for(auto& t : ts) {
-	// 	t->destroy();
-	// }
-	//
-	// LogSystem::poll();
-	runBenchmark();
+	using namespace hana;
+
+	{
+		std::vector<RCUnique<Thread>> ts;
+
+		LogSystem::set_header_pattern(u8"[{t} {T}] {M}");
+
+		ts.emplace_back(Thread::init({
+			.func = [](void*) {
+				Thread::set_current_name(u8"thread1");
+
+				LOG_INFO(u8"124");
+			}
+		}));
+
+		ts.emplace_back(Thread::init({
+			.func = [](void*) {
+				Thread::set_current_name(u8"thread2");
+				LOG_INFO(u8"222");
+			}
+		}));
+	}
+
+	LogSystem::poll();
+	// runBenchmark();
 }

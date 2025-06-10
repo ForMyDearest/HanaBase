@@ -1,10 +1,46 @@
 #pragma once
 
+#include <atomic>
+#include <compare>
+#include <utility>
 #include <concepts>
 
 namespace hana
 {
+	class RCUniqueInterface {
+		static constexpr void rc_set_unique() {}
+		static constexpr bool rc_release() { return true; }
+		static constexpr uint32_t rc_weak_count() noexcept { return 0; }
+
+		template<typename T> friend class RCUnique;
+	};
+
 	class RCInterface {
+		uint32_t rc_count() const noexcept {
+			return counter.load(std::memory_order_relaxed);
+		}
+
+		void rc_set_unique() noexcept {
+			counter.store(1, std::memory_order_relaxed);
+		}
+
+		void rc_add_ref() noexcept {
+			counter.fetch_add(1, std::memory_order_relaxed);
+		}
+
+		bool rc_release() noexcept {
+			return counter.fetch_sub(1, std::memory_order_release) == 1;
+		}
+
+		static constexpr uint32_t rc_weak_count() noexcept { return 0; }
+
+		std::atomic<uint32_t> counter = 0;
+
+		template<typename T> friend class RC;
+		template<typename T> friend class RCUnique;
+	};
+
+	class RCWeakInterface {
 		uint32_t rc_count() const noexcept {
 			return counter.load(std::memory_order_relaxed);
 		}
@@ -36,12 +72,9 @@ namespace hana
 		std::atomic<uint32_t> counter = 0;
 		std::atomic<uint32_t> weak_counter = 0;
 
-		template<typename T> requires(std::is_base_of_v<RCInterface, T>)
-		friend class RC;
-		template<typename T> requires(std::is_base_of_v<RCInterface, T>)
-		friend class RCWeak;
-		template<typename T> requires(std::is_base_of_v<RCInterface, T>)
-		friend class RCUnique;
+		template<typename T> friend class RC;
+		template<typename T> friend class RCWeak;
+		template<typename T> friend class RCUnique;
 	};
 
 	template<typename From, typename To>
@@ -51,7 +84,7 @@ namespace hana
 		std::is_same_v<From, To> || std::has_virtual_destructor_v<To>;
 	};
 
-	template<typename T> requires(std::is_base_of_v<RCInterface, T>)
+	template<typename T>
 	class RCUnique {
 	public:
 		RCUnique() noexcept = default;
@@ -114,7 +147,7 @@ namespace hana
 		T* ptr_ = nullptr;
 	};
 
-	template<typename T> requires(std::is_base_of_v<RCInterface, T>)
+	template<typename T>
 	class RC {
 	public:
 		RC() noexcept = default;
@@ -176,10 +209,9 @@ namespace hana
 		T* ptr_ = nullptr;
 	};
 
-	template<typename T> requires(std::is_base_of_v<RCInterface, T>)
+	template<typename T>
 	class RCWeak {
-		template<typename U> requires(std::is_base_of_v<RCInterface, U>)
-		friend class RCWeak;
+		template<typename U> friend class RCWeak;
 
 	public:
 		RCWeak() noexcept = default;

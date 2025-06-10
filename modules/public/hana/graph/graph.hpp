@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hana/memory/rc.hpp"
 #include "hana/platform/macros.h"
 
 #include <functional>
@@ -27,10 +28,9 @@ namespace hana
 		struct GraphEdgeID* id = nullptr;
 	};
 
-	class HANA_BASE_API Graph {
+	class HANA_BASE_API Graph : RCUniqueInterface {
 	public:
-		Graph();
-		~Graph() noexcept;
+		static RCUnique<Graph> create();
 
 		void add_edge(GraphNode* from, GraphNode* to, GraphEdge* edge = nullptr);
 		void remove_vertex(GraphNode* node) noexcept;
@@ -42,10 +42,13 @@ namespace hana
 		void foreach_inv_neighbors(GraphNode* node, const std::function<void(GraphNode*)>& func);
 		void foreach_outgoing_edges(GraphNode* node, const std::function<void(GraphEdge*)>& func);
 		void foreach_incoming_edges(GraphNode* node, const std::function<void(GraphEdge*)>& func);
-
 		void foreach_vertex(const std::function<void(GraphNode*)>& func);
 
 	private:
-		struct GraphImpl* pimpl;
+		template<typename> friend class RCUnique;
+		void rc_delete() noexcept;
+
+		Graph() = default;
+		~Graph() = default;
 	};
 }

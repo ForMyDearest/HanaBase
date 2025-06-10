@@ -439,137 +439,127 @@ namespace hana
 
 namespace hana
 {
-	struct JsonHelper {
-		static JsonWriterImpl* get(JsonWriter& w) {
-			return w.pimpl;
-		}
-
-		static JsonReaderImpl* get(JsonReader& r) {
-			return r.pimpl;
-		}
-	};
-
-	JsonResult json_write(JsonWriter& w, HStringView key, bool value) {
-		return JsonHelper::get(w)->json_write(key, value);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, bool value) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->json_write(key, value);
 	}
 
-	JsonResult json_write(JsonWriter& w, HStringView key, int64_t value) {
-		return JsonHelper::get(w)->json_write(key, value);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, int64_t value) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->json_write(key, value);
 	}
 
-	JsonResult json_write(JsonWriter& w, HStringView key, uint64_t value) {
-		return JsonHelper::get(w)->json_write(key, value);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, uint64_t value) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->json_write(key, value);
 	}
 
-	JsonResult json_write(JsonWriter& w, HStringView key, double value) {
-		return JsonHelper::get(w)->json_write(key, value);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, double value) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->json_write(key, value);
 	}
 
-	JsonResult json_write(JsonWriter& w, HStringView key, const char8_t* value, size_t len) {
-		return JsonHelper::get(w)->json_write(key, reinterpret_cast<const char*>(value), len);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, const char8_t* value, size_t len) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->json_write(key, reinterpret_cast<const char*>(value), len);
 	}
 
-	JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const bool* values) {
-		return JsonHelper::get(w)->write_array(key, count, values);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const bool* values) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->write_array(key, count, values);
 	}
 
-	JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const int64_t* values) {
-		return JsonHelper::get(w)->write_array(key, count, values);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const int64_t* values) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->write_array(key, count, values);
 	}
 
-	JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const uint64_t* values) {
-		return JsonHelper::get(w)->write_array(key, count, values);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const uint64_t* values) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->write_array(key, count, values);
 	}
 
-	JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const double* values) {
-		return JsonHelper::get(w)->write_array(key, count, values);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const double* values) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->write_array(key, count, values);
 	}
 
-	JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const char8_t** values, const size_t* lens) {
-		return JsonHelper::get(w)->write_array(key, count, reinterpret_cast<const char**>(values), lens);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const char8_t** values, const size_t* lens) {
+		return reinterpret_cast<JsonWriterImpl*>(w.get())->write_array(key, count, reinterpret_cast<const char**>(values), lens);
 	}
 
-	JsonResult json_read(JsonReader& r, HStringView key, bool& value) {
-		return JsonHelper::get(r)->json_read(key, value);
+	JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, bool& value) {
+		return reinterpret_cast<JsonReaderImpl*>(r.get())->json_read(key, value);
 	}
 
-	JsonResult json_read(JsonReader& r, HStringView key, int64_t& value) {
-		return JsonHelper::get(r)->json_read(key, value);
+	JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, int64_t& value) {
+		return reinterpret_cast<JsonReaderImpl*>(r.get())->json_read(key, value);
 	}
 
-	JsonResult json_read(JsonReader& r, HStringView key, uint64_t& value) {
-		return JsonHelper::get(r)->json_read(key, value);
+	JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, uint64_t& value) {
+		return reinterpret_cast<JsonReaderImpl*>(r.get())->json_read(key, value);
 	}
 
-	JsonResult json_read(JsonReader& r, HStringView key, double& value) {
-		return JsonHelper::get(r)->json_read(key, value);
+	JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, double& value) {
+		return reinterpret_cast<JsonReaderImpl*>(r.get())->json_read(key, value);
 	}
 
-	JsonResult json_read(JsonReader& r, HStringView key, const char8_t*& value) {
-		return JsonHelper::get(r)->json_read(key, reinterpret_cast<const char*&>(value));
+	JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, const char8_t*& value) {
+		return reinterpret_cast<JsonReaderImpl*>(r.get())->json_read(key, reinterpret_cast<const char*&>(value));
 	}
 }
 
 // JsonWriter
 namespace hana
 {
-	JsonWriter::JsonWriter(size_t level_depth) {
-		pimpl = new JsonWriterImpl(level_depth);
+	RCUnique<JsonWriter> JsonWriter::create(size_t level_depth) {
+		return RCUnique<JsonWriter>{reinterpret_cast<JsonWriter*>(new JsonWriterImpl(level_depth))};
 	}
 
-	JsonWriter::~JsonWriter() noexcept {
-		delete pimpl;
+	void JsonWriter::rc_delete() noexcept {
+		delete reinterpret_cast<JsonWriterImpl*>(this);
 	}
 
 	JsonResult JsonWriter::start_object(HStringView key) {
-		return pimpl->start_object(key);
+		return reinterpret_cast<JsonWriterImpl*>(this)->start_object(key);
 	}
 
 	JsonResult JsonWriter::start_array(HStringView key) {
-		return pimpl->start_array(key);
+		return reinterpret_cast<JsonWriterImpl*>(this)->start_array(key);
 	}
 
 	JsonResult JsonWriter::end_array() noexcept {
-		return pimpl->end_array();
+		return reinterpret_cast<JsonWriterImpl*>(this)->end_array();
 	}
 
 	JsonResult JsonWriter::end_object() noexcept {
-		return pimpl->end_object();
+		return reinterpret_cast<JsonWriterImpl*>(this)->end_object();
 	}
 
 	HString JsonWriter::dump() const {
-		return pimpl->dump();
+		return reinterpret_cast<const JsonWriterImpl*>(this)->dump();
 	}
 }
 
 // JsonReader
 namespace hana
 {
-	JsonReader::JsonReader(HStringView json) {
-		pimpl = new JsonReaderImpl(json);
+	RCUnique<JsonReader> JsonReader::create(HStringView json) {
+		return RCUnique<JsonReader>{reinterpret_cast<JsonReader*>(new JsonReaderImpl(json))};
 	}
 
-	JsonReader::~JsonReader() noexcept {
-		delete pimpl;
+	void JsonReader::rc_delete() noexcept {
+		delete reinterpret_cast<JsonReaderImpl*>(this);
 	}
 
 	JsonResult JsonReader::start_object(HStringView key) {
-		return pimpl->start_object(key);
+		return reinterpret_cast<JsonReaderImpl*>(this)->start_object(key);
 	}
 
 	JsonResult JsonReader::start_array(HStringView key, size_t& count) {
-		return pimpl->start_array(key, count);
+		return reinterpret_cast<JsonReaderImpl*>(this)->start_array(key, count);
 	}
 
 	JsonResult JsonReader::end_array() noexcept {
-		return pimpl->end_array();
+		return reinterpret_cast<JsonReaderImpl*>(this)->end_array();
 	}
 
 	JsonResult JsonReader::end_object() noexcept {
-		return pimpl->end_object();
+		return reinterpret_cast<JsonReaderImpl*>(this)->end_object();
 	}
 
 	JsonResult JsonReader::check_scope() const noexcept {
-		return pimpl->check_scope();
+		return reinterpret_cast<const JsonReaderImpl*>(this)->check_scope();
 	}
 }

@@ -193,9 +193,8 @@ namespace hana
 	}
 
 	void ModuleManagerImpl::ParseMetaData(IModule* module, size_t hash, bool load, int argc, char8_t** argv) {
-		JsonReader reader(module->get_meta_data());
-
-		reader.start_object(u8"");
+		auto reader = JsonReader::create(module->get_meta_data());
+		reader->start_object(u8"");
 		if (true) {
 			json_read(reader, u8"api", module->api);
 			json_read(reader, u8"version", module->version);
@@ -207,19 +206,19 @@ namespace hana
 			json_read(reader, u8"author", module->author);
 
 			size_t count;
-			reader.start_array(u8"dependencies", count);
+			reader->start_array(u8"dependencies", count);
 			if (count == 0) roots.emplace(hash);
 
 			for (auto i = 0; i < count; i++) {
 				HString name, kind;
-				reader.start_object(u8"");
+				reader->start_object(u8"");
 				json_read(reader, u8"name", name);
 				json_read(reader, u8"kind", kind);
-				reader.end_object();
+				reader->end_object();
 
 				auto&& dep_module = LoadModule(std::move(name), kind == u8"shared", load, argc, argv);
 
-				dependency_graph.add_edge(dep_module, module);
+				dependency_graph->add_edge(dep_module, module);
 			}
 			// reader.end_array();
 		}
@@ -231,7 +230,7 @@ namespace hana
 		if (module_iter == modules_map.end()) return;
 
 		auto&& module = module_iter->second;
-		dependency_graph.foreach_neighbors(module, [this](GraphNode* node) {
+		dependency_graph->foreach_neighbors(module, [this](GraphNode* node) {
 			UnloadModule(do_hash(reinterpret_cast<IModule*>(node)->name));
 		});
 
@@ -248,7 +247,7 @@ namespace hana
 		for (auto&& [module, hash]: destruction) {
 			if (auto&& iter = hotfixs.find(hash); iter != hotfixs.end()) hotfixs.erase(iter);
 
-			dependency_graph.remove_vertex(module);
+			dependency_graph->remove_vertex(module);
 
 			module->on_unload();
 			if (module->is_shared()) {
@@ -359,6 +358,7 @@ namespace hana
 		if (!process_symbol_table.load(nullptr)) {
 			LOG_FATAL(u8"Failed to load symbol table");
 		}
+		dependency_graph = std::move(Graph::create());
 	}
 
 	ModuleManagerImpl::~ModuleManagerImpl() noexcept {
@@ -402,8 +402,8 @@ namespace hana
 		return iter == modules_map.end() ? nullptr : iter->second;
 	}
 
-	Graph* ModuleManagerImpl::get_dependency_graph() noexcept {
-		return &dependency_graph;
+	Graph* ModuleManagerImpl::get_dependency_graph() const noexcept {
+		return dependency_graph.get();
 	}
 }
 
@@ -435,7 +435,7 @@ namespace hana
 
 		graph->attach_node(v);
 		visited.emplace(module, v);
-		instance().dependency_graph.foreach_neighbors(module, [&](GraphNode* node) {
+		instance().dependency_graph->foreach_neighbors(module, [&](GraphNode* node) {
 			auto v_to = dfs(reinterpret_cast<IModule*>(node));
 			auto e = registry->create_edge(v, v_to);
 			graph->attach_edge(e);

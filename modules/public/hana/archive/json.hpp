@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hana/memory/rc.hpp"
 #include "hana/container/string.hpp"
 
 namespace hana
@@ -19,16 +20,14 @@ namespace hana
 			KEY_NOT_FOUND, // R
 		} result;
 
-		constexpr operator bool() const noexcept { return result == OK; }
+		explicit constexpr operator bool() const noexcept { return result == OK; }
 
 		constexpr JsonResult(ErrorCode code = OK) noexcept: result(code) {}
 	};
 
-	class HANA_BASE_API JsonWriter {
+	class HANA_BASE_API JsonWriter : RCUniqueInterface {
 	public:
-		// reserve for stack
-		explicit JsonWriter(size_t level_depth);
-		~JsonWriter() noexcept;
+		static RCUnique<JsonWriter> create(size_t level_depth);
 
 		JsonResult start_object(HStringView key);
 		JsonResult start_array(HStringView key);
@@ -37,14 +36,16 @@ namespace hana
 		[[nodiscard]] HString dump() const;
 
 	private:
-		friend struct JsonHelper;
-		struct JsonWriterImpl* pimpl;
+		template<typename> friend class RCUnique;
+		void rc_delete() noexcept;
+
+		JsonWriter() = default;
+		~JsonWriter() = default;
 	};
 
-	class HANA_BASE_API JsonReader {
+	class HANA_BASE_API JsonReader : RCUniqueInterface {
 	public:
-		explicit JsonReader(HStringView json);
-		~JsonReader() noexcept;
+		static RCUnique<JsonReader> create(HStringView json);
 
 		JsonResult start_object(HStringView key);
 		JsonResult start_array(HStringView key, size_t& count);
@@ -53,42 +54,45 @@ namespace hana
 		JsonResult check_scope() const noexcept;
 
 	private:
-		friend struct JsonHelper;
-		struct JsonReaderImpl* pimpl;
+		template<typename> friend class RCUnique;
+		void rc_delete() noexcept;
+
+		JsonReader() = default;
+		~JsonReader() = default;
 	};
 
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, bool value);
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, int64_t value);
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, uint64_t value);
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, double value);
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, const char8_t* value, size_t len);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, bool value);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, int64_t value);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, uint64_t value);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, double value);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, const char8_t* value, size_t len);
 
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const bool* values);
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const int64_t* values);
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const uint64_t* values);
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const double* values);
-	HANA_BASE_API JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const char8_t** values, const size_t* lens);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const bool* values);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const int64_t* values);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const uint64_t* values);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const double* values);
+	HANA_BASE_API JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const char8_t** values, const size_t* lens);
 
-	HANA_BASE_API JsonResult json_read(JsonReader& r, HStringView key, bool& value);
-	HANA_BASE_API JsonResult json_read(JsonReader& r, HStringView key, int64_t& value);
-	HANA_BASE_API JsonResult json_read(JsonReader& r, HStringView key, uint64_t& value);
-	HANA_BASE_API JsonResult json_read(JsonReader& r, HStringView key, double& value);
-	HANA_BASE_API JsonResult json_read(JsonReader& r, HStringView key, const char8_t*& value);
+	HANA_BASE_API JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, bool& value);
+	HANA_BASE_API JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, int64_t& value);
+	HANA_BASE_API JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, uint64_t& value);
+	HANA_BASE_API JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, double& value);
+	HANA_BASE_API JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, const char8_t*& value);
 
-	inline JsonResult json_write(JsonWriter& w, HStringView key, int8_t value) { return json_write(w, key, static_cast<int64_t>(value)); }
-	inline JsonResult json_write(JsonWriter& w, HStringView key, int16_t value) { return json_write(w, key, static_cast<int64_t>(value)); }
-	inline JsonResult json_write(JsonWriter& w, HStringView key, int32_t value) { return json_write(w, key, static_cast<int64_t>(value)); }
-	inline JsonResult json_write(JsonWriter& w, HStringView key, uint8_t value) { return json_write(w, key, static_cast<uint64_t>(value)); }
-	inline JsonResult json_write(JsonWriter& w, HStringView key, uint16_t value) { return json_write(w, key, static_cast<uint64_t>(value)); }
-	inline JsonResult json_write(JsonWriter& w, HStringView key, uint32_t value) { return json_write(w, key, static_cast<uint64_t>(value)); }
-	inline JsonResult json_write(JsonWriter& w, HStringView key, float value) { return json_write(w, key, static_cast<double>(value)); }
-	inline JsonResult json_write(JsonWriter& w, HStringView key, long double value) { return json_write(w, key, static_cast<double>(value)); }
-	inline JsonResult json_write(JsonWriter& w, HStringView key, HStringView value) { return json_write(w, key, value.data(), value.size()); }
-	inline JsonResult json_write(JsonWriter& w, HStringView key, const char8_t* value) { return json_write(w, key, HStringView{value}); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, int8_t value) { return json_write(w, key, static_cast<int64_t>(value)); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, int16_t value) { return json_write(w, key, static_cast<int64_t>(value)); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, int32_t value) { return json_write(w, key, static_cast<int64_t>(value)); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, uint8_t value) { return json_write(w, key, static_cast<uint64_t>(value)); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, uint16_t value) { return json_write(w, key, static_cast<uint64_t>(value)); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, uint32_t value) { return json_write(w, key, static_cast<uint64_t>(value)); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, float value) { return json_write(w, key, static_cast<double>(value)); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, long double value) { return json_write(w, key, static_cast<double>(value)); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, HStringView value) { return json_write(w, key, value.data(), value.size()); }
+	inline JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, const char8_t* value) { return json_write(w, key, HStringView{value}); }
 
 	template<typename T>
-	JsonResult json_write(JsonWriter& w, HStringView key, size_t count, const T* values) {
-		auto result = w.start_array(key);
+	JsonResult json_write(const RCUnique<JsonWriter>& w, HStringView key, size_t count, const T* values) {
+		auto result = w->start_array(key);
 		if (!result) return result;
 
 		for (size_t i = 0; i < count; i++) {
@@ -97,12 +101,12 @@ namespace hana
 		return result;
 	}
 
-#define HANA_JSON_READ_AS(Type, As)												\
-	inline JsonResult json_read(JsonReader& r, HStringView key, Type& value) {	\
-		As tmp;																	\
-		auto result = json_read(r, key, tmp);									\
-		if (result) value = tmp;												\
-		return result;															\
+#define HANA_JSON_READ_AS(Type, As)																\
+	inline JsonResult json_read(const RCUnique<JsonReader>& r, HStringView key, Type& value) {	\
+		As tmp;																					\
+		auto result = json_read(r, key, tmp);													\
+		if (result) value = tmp;																\
+		return result;																			\
 	}
 
 	HANA_JSON_READ_AS(int8_t, int64_t)
@@ -119,8 +123,8 @@ namespace hana
 #undef HANA_JSON_READ_AS
 
 	template<typename T>
-	JsonResult json_read(JsonReader& r, size_t count, T* values) {
-		auto result = r.check_scope();
+	JsonResult json_read(const RCUnique<JsonReader>& r, size_t count, T* values) {
+		auto result = r->check_scope();
 		if (!result) return result;
 
 		for (auto i = 0; i < count; i++) {

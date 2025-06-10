@@ -5,7 +5,7 @@ static uint64_t rc_base_count = 0;
 static uint64_t rc_derived_count = 0;
 static uint64_t rc_custom_deleter_count = 0;
 
-struct TestRCBase : hana::RCInterface {
+struct TestRCBase : hana::RCWeakInterface {
 	TestRCBase() {
 		++rc_base_count;
 	}
@@ -25,7 +25,7 @@ struct TestRCDerived : TestRCBase {
 	}
 };
 
-struct TestCustomDeleterRC : hana::RCInterface {
+struct TestCustomDeleterRC : hana::RCWeakInterface {
 	void rc_delete() const {
 		++rc_custom_deleter_count;
 		delete this;

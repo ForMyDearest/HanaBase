@@ -40,7 +40,7 @@ namespace hana
 		void destroy();
 
 		[[nodiscard]] IModule* get_module(const char8_t* name) noexcept;
-		[[nodiscard]] Graph* get_dependency_graph() noexcept;
+		[[nodiscard]] Graph* get_dependency_graph() const noexcept;
 
 		struct GraphvizDumper {
 			explicit GraphvizDumper();
@@ -61,8 +61,8 @@ namespace hana
 		void UnloadModule(size_t hash);
 		void DestroyModules();
 
+		RCUnique<Graph> dependency_graph;
 		SharedLibrary process_symbol_table;
-		Graph dependency_graph;
 		std::filesystem::path root; // 动态库根目录
 
 		std::vector<std::pair<IModule*, size_t>> destruction;

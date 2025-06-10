@@ -26,7 +26,7 @@ void CHECK_VALUE(const T& x, const U& y) {
 #define CHECK_ERROR(r, err) CHECK_FALSE(r); CHECK_EQ(r.result, err);
 
 template<typename T>
-void CHECK_READ_ERROR(hana::JsonReader& r, hana::HStringView key, hana::JsonResult::ErrorCode code) {
+void CHECK_READ_ERROR(hana::RCUnique<hana::JsonReader>& r, hana::HStringView key, hana::JsonResult::ErrorCode code) {
 	T value;
 	auto result = hana::json_read(r, key, value);
 	CHECK_ERROR(result, code);
@@ -36,31 +36,31 @@ template<typename T>
 void TestPrimitiveType(const T& value) {
 	using namespace hana;
 
-	JsonWriter writer(1);
+	auto writer = JsonWriter::create(1);
 	if (true) {
 		const char8_t* key = u8"key";
-		CHECK(writer.start_object(u8""));
+		CHECK(writer->start_object(u8""));
 		CHECK(json_write(writer, key, value));
-		CHECK(writer.end_object());
+		CHECK(writer->end_object());
 	}
 	if (true) {
-		auto json = writer.dump();
+		auto json = writer->dump();
 		LOG_INFO(u8"PRIMITIVE JSON: {}", json);
 
 		if constexpr (std::is_same_v<T, HStringView>) {
-			JsonReader reader(json);
-			CHECK(reader.start_object(u8""));
+			auto reader = JsonReader::create(json);
+			CHECK(reader->start_object(u8""));
 			HString result;
 			CHECK(json_read(reader, u8"key", result));
 			CHECK_VALUE(result, value);
-			CHECK(reader.end_object());
+			CHECK(reader->end_object());
 		} else {
-			JsonReader reader(json);
-			CHECK(reader.start_object(u8""));
+			auto reader = JsonReader::create(json);
+			CHECK(reader->start_object(u8""));
 			T result;
 			LOG_INFO(u8"{}", typeid(result).name());
 			CHECK(json_read(reader, u8"key", result));
-			CHECK(reader.end_object());
+			CHECK(reader->end_object());
 			CHECK_VALUE(value, result);
 		}
 	}
@@ -71,30 +71,29 @@ struct TestPrimitiveArray {
 	template<typename... Args>
 	TestPrimitiveArray(Args... params) {
 		using namespace hana;
-		JsonWriter writer(1);
-
+		auto writer = JsonWriter::create(1);
 		std::array<T, sizeof...(Args)> values = {T(params)...};
 
 		if (true) {
 			const char8_t* key = u8"key";
-			CHECK(writer.start_object(u8""));
+			CHECK(writer->start_object(u8""));
 			CHECK(json_write(writer, key, values.size(), values.data()));
-			CHECK(writer.end_array());
-			CHECK(writer.end_object());
+			CHECK(writer->end_array());
+			CHECK(writer->end_object());
 		}
 		if (true) {
-			auto json = writer.dump();
+			auto json = writer->dump();
 			LOG_INFO(u8"PRIMITIVE ARRAY JSON: {}", json);
-			JsonReader reader(json);
-
-			CHECK(reader.start_object(u8""));
+			auto reader = JsonReader::create(json);
+			
+			CHECK(reader->start_object(u8""));
 			size_t count;
-			CHECK(reader.start_array(u8"key", count));
+			CHECK(reader->start_array(u8"key", count));
 
 			decltype(values) _values;
 			CHECK(json_read(reader, count, _values.data()));
-			CHECK(reader.end_array());
-			CHECK(reader.end_object());
+			CHECK(reader->end_array());
+			CHECK(reader->end_object());
 
 			for (size_t i = 0; i < std::size(values); i++) {
 				CHECK_VALUE(values[i], _values[i]);
@@ -154,71 +153,71 @@ TEST_CASE_FIXTURE(JSONTests, "read errors") {
 	using enum JsonResult::ErrorCode;
 
 	SUBCASE("NO_OPEN_SCOPE") {
-		CHECK_ERROR(JsonReader(u8"{}").end_array(), NO_OPEN_SCOPE);
-		CHECK_ERROR(JsonReader(u8"{}").end_object(), NO_OPEN_SCOPE);
+		CHECK_ERROR(JsonReader::create(u8"{}")->end_array(), NO_OPEN_SCOPE);
+		CHECK_ERROR(JsonReader::create(u8"{}")->end_object(), NO_OPEN_SCOPE);
 	}
 
 	SUBCASE("SCOPE_TYPE_MISMATCH(start_array)") {
-		auto obj_reader = JsonReader(u8"{ \"obj\": \"value\" }");
-		CHECK(obj_reader.start_object(u8""));
+		auto obj_reader = JsonReader::create(u8"{ \"obj\": \"value\" }");
+		CHECK(obj_reader->start_object(u8""));
 		size_t count;
-		CHECK_ERROR(obj_reader.start_array(u8"obj", count), SCOPE_TYPE_MISMATCH);
+		CHECK_ERROR(obj_reader->start_array(u8"obj", count), SCOPE_TYPE_MISMATCH);
 	}
 
 	SUBCASE("SCOPE_TYPE_MISMATCH(end_objectAsArray)") {
-		auto obj_reader = JsonReader(u8"{}");
-		CHECK(obj_reader.start_object(u8""));
-		CHECK_ERROR(obj_reader.end_array(), SCOPE_TYPE_MISMATCH);
+		auto obj_reader = JsonReader::create(u8"{}");
+		CHECK(obj_reader->start_object(u8""));
+		CHECK_ERROR(obj_reader->end_array(), SCOPE_TYPE_MISMATCH);
 	}
 
 	SUBCASE("SCOPE_TYPE_MISMATCH(start_arrayAsObject)") {
-		auto arr_reader = JsonReader(u8"{ \"arr\": [ 0, 1, 2, 3 ] }");
-		CHECK(arr_reader.start_object(u8""));
-		CHECK_ERROR(arr_reader.start_object(u8"arr"), SCOPE_TYPE_MISMATCH);
+		auto arr_reader = JsonReader::create(u8"{ \"arr\": [ 0, 1, 2, 3 ] }");
+		CHECK(arr_reader->start_object(u8""));
+		CHECK_ERROR(arr_reader->start_object(u8"arr"), SCOPE_TYPE_MISMATCH);
 	}
 
 	SUBCASE("SCOPE_TYPE_MISMATCH(StartPrimitiveAsObject/Array)") {
-		auto value_reader = JsonReader(u8"{ \"value\": 123 }");
-		CHECK(value_reader.start_object(u8""));
-		CHECK_ERROR(value_reader.start_object(u8"value"), SCOPE_TYPE_MISMATCH);
+		auto value_reader = JsonReader::create(u8"{ \"value\": 123 }");
+		CHECK(value_reader->start_object(u8""));
+		CHECK_ERROR(value_reader->start_object(u8"value"), SCOPE_TYPE_MISMATCH);
 		size_t count;
-		CHECK_ERROR(value_reader.start_array(u8"value", count), SCOPE_TYPE_MISMATCH);
+		CHECK_ERROR(value_reader->start_array(u8"value", count), SCOPE_TYPE_MISMATCH);
 
-		auto arr_reader = JsonReader(u8"{ \"arr\": [ 0, 1, 2, 3 ] }");
-		CHECK(arr_reader.start_object(u8""));
-		auto result = arr_reader.start_array(u8"arr", count);
+		auto arr_reader = JsonReader::create(u8"{ \"arr\": [ 0, 1, 2, 3 ] }");
+		CHECK(arr_reader->start_object(u8""));
+		auto result = arr_reader->start_array(u8"arr", count);
 		CHECK(result);
 		CHECK_EQ(count, 4);
-		CHECK_ERROR(arr_reader.start_object(u8""), SCOPE_TYPE_MISMATCH);
-		CHECK_ERROR(arr_reader.start_array(u8"", count), SCOPE_TYPE_MISMATCH);
+		CHECK_ERROR(arr_reader->start_object(u8""), SCOPE_TYPE_MISMATCH);
+		CHECK_ERROR(arr_reader->start_array(u8"", count), SCOPE_TYPE_MISMATCH);
 	}
 
 	SUBCASE("SCOPE_TYPE_MISMATCH(end_arrayAsObject)") {
-		auto arr_reader = JsonReader(u8"{ \"arr\": [ 0, 1, 2, 3 ] }");
-		CHECK(arr_reader.start_object(u8""));
+		auto arr_reader = JsonReader::create(u8"{ \"arr\": [ 0, 1, 2, 3 ] }");
+		CHECK(arr_reader->start_object(u8""));
 
 		size_t count;
-		auto result = arr_reader.start_array(u8"arr", count);
+		auto result = arr_reader->start_array(u8"arr", count);
 		CHECK(result);
 		CHECK_EQ(count, 4);
-		CHECK_ERROR(arr_reader.end_object(), SCOPE_TYPE_MISMATCH);
+		CHECK_ERROR(arr_reader->end_object(), SCOPE_TYPE_MISMATCH);
 	}
 
 	SUBCASE("KEY_NOT_FOUND(ObjectField)") {
-		auto obj_reader = JsonReader(u8"{ \"key\": \"value\" }");
-		CHECK(obj_reader.start_object(u8""));
+		auto obj_reader = JsonReader::create(u8"{ \"key\": \"value\" }");
+		CHECK(obj_reader->start_object(u8""));
 		CHECK_READ_ERROR<HString>(obj_reader, u8"key_mismatch", KEY_NOT_FOUND);
 		size_t count;
-		CHECK_ERROR(obj_reader.start_array(u8"key_mismatch",count), KEY_NOT_FOUND);
-		CHECK_ERROR(obj_reader.start_object(u8"key_mismatch"), KEY_NOT_FOUND);
+		CHECK_ERROR(obj_reader->start_array(u8"key_mismatch",count), KEY_NOT_FOUND);
+		CHECK_ERROR(obj_reader->start_object(u8"key_mismatch"), KEY_NOT_FOUND);
 	}
 
 	SUBCASE("KEY_NOT_FOUND(ArrayIndexOverflow)") {
-		auto arr_reader = JsonReader(u8"{ \"arr\": [ 0 ] }");
-		CHECK(arr_reader.start_object(u8""));
+		auto arr_reader = JsonReader::create(u8"{ \"arr\": [ 0 ] }");
+		CHECK(arr_reader->start_object(u8""));
 		size_t count;
 		if (true) {
-			auto result = arr_reader.start_array(u8"arr", count);
+			auto result = arr_reader->start_array(u8"arr", count);
 			CHECK(result);
 			CHECK_EQ(count, 1);
 		}
@@ -233,11 +232,11 @@ TEST_CASE_FIXTURE(JSONTests, "read errors") {
 	}
 
 	SUBCASE("EMPTY_OBJECT_FIELD_KEY") {
-		auto obj_reader = JsonReader(u8"{ \"key\": \"value\" }");
+		auto obj_reader = JsonReader::create(u8"{ \"key\": \"value\" }");
 		size_t count;
-		CHECK(obj_reader.start_object(u8""));
-		CHECK_ERROR(obj_reader.start_object(u8""), EMPTY_OBJECT_FIELD_KEY);
-		CHECK_ERROR(obj_reader.start_array(u8"", count), EMPTY_OBJECT_FIELD_KEY);
+		CHECK(obj_reader->start_object(u8""));
+		CHECK_ERROR(obj_reader->start_object(u8""), EMPTY_OBJECT_FIELD_KEY);
+		CHECK_ERROR(obj_reader->start_array(u8"", count), EMPTY_OBJECT_FIELD_KEY);
 
 		CHECK_READ_ERROR<bool>(obj_reader, u8"", EMPTY_OBJECT_FIELD_KEY);
 		CHECK_READ_ERROR<int32_t>(obj_reader, u8"", EMPTY_OBJECT_FIELD_KEY);
@@ -248,10 +247,10 @@ TEST_CASE_FIXTURE(JSONTests, "read errors") {
 	}
 
 	SUBCASE("ARRAY_ELEMENT_WITH_KEY") {
-		auto arr_reader = JsonReader(u8"{ \"arr\": [ 0 ] }");
-		CHECK(arr_reader.start_object(u8""));
+		auto arr_reader = JsonReader::create(u8"{ \"arr\": [ 0 ] }");
+		CHECK(arr_reader->start_object(u8""));
 		size_t count;
-		auto result = arr_reader.start_array(u8"arr", count);
+		auto result = arr_reader->start_array(u8"arr", count);
 		CHECK(result);
 		CHECK_EQ(count, 1);
 
@@ -261,13 +260,13 @@ TEST_CASE_FIXTURE(JSONTests, "read errors") {
 		CHECK_READ_ERROR<float>(arr_reader, u8"k", ARRAY_ELEMENT_WITH_KEY);
 		CHECK_READ_ERROR<double>(arr_reader, u8"k", ARRAY_ELEMENT_WITH_KEY);
 		CHECK_READ_ERROR<HString>(arr_reader, u8"k", ARRAY_ELEMENT_WITH_KEY);
-		CHECK_ERROR(arr_reader.start_object(u8"k"), ARRAY_ELEMENT_WITH_KEY);
-		CHECK_ERROR(arr_reader.start_array(u8"k", count), ARRAY_ELEMENT_WITH_KEY);
+		CHECK_ERROR(arr_reader->start_object(u8"k"), ARRAY_ELEMENT_WITH_KEY);
+		CHECK_ERROR(arr_reader->start_array(u8"k", count), ARRAY_ELEMENT_WITH_KEY);
 	}
 
 	SUBCASE("ROOT_OBJECT_WITH_KEY") {
-		auto obj_reader = JsonReader(u8"{ \"key\": \"value\" }");
-		CHECK_ERROR(obj_reader.start_object(u8"key"), ROOT_OBJECT_WITH_KEY);
+		auto obj_reader = JsonReader::create(u8"{ \"key\": \"value\" }");
+		CHECK_ERROR(obj_reader->start_object(u8"key"), ROOT_OBJECT_WITH_KEY);
 	}
 }
 
@@ -276,27 +275,27 @@ TEST_CASE_FIXTURE(JSONTests, "write errors") {
 	using enum JsonResult::ErrorCode;
 
 	SUBCASE("NO_OPEN_SCOPE") {
-		CHECK_ERROR(JsonWriter(1).end_array(), NO_OPEN_SCOPE);
-		CHECK_ERROR(JsonWriter(1).end_object(), NO_OPEN_SCOPE);
+		CHECK_ERROR(JsonWriter::create(1)->end_array(), NO_OPEN_SCOPE);
+		CHECK_ERROR(JsonWriter::create(1)->end_object(), NO_OPEN_SCOPE);
 	}
 
 	SUBCASE("SCOPE_TYPE_MISMATCH") {
-		auto obj_writer = JsonWriter(3);
-		CHECK(obj_writer.start_object(u8""));
-		CHECK(obj_writer.start_object(u8"obj"));
-		CHECK_ERROR(obj_writer.end_array(), SCOPE_TYPE_MISMATCH);
+		auto obj_writer = JsonWriter::create(3);
+		CHECK(obj_writer->start_object(u8""));
+		CHECK(obj_writer->start_object(u8"obj"));
+		CHECK_ERROR(obj_writer->end_array(), SCOPE_TYPE_MISMATCH);
 
-		auto arr_writer = JsonWriter(3);
-		CHECK(arr_writer.start_object(u8""));
-		CHECK(arr_writer.start_array(u8"arr"));
-		CHECK_ERROR(arr_writer.end_object(), SCOPE_TYPE_MISMATCH);
+		auto arr_writer = JsonWriter::create(3);
+		CHECK(arr_writer->start_object(u8""));
+		CHECK(arr_writer->start_array(u8"arr"));
+		CHECK_ERROR(arr_writer->end_object(), SCOPE_TYPE_MISMATCH);
 	}
 
 	SUBCASE("EMPTY_OBJECT_FIELD_KEY") {
-		auto obj_writer = JsonWriter(3);
-		CHECK(obj_writer.start_object(u8""));
-		CHECK_ERROR(obj_writer.start_object(u8""), EMPTY_OBJECT_FIELD_KEY);
-		CHECK_ERROR(obj_writer.start_array(u8""), EMPTY_OBJECT_FIELD_KEY);
+		auto obj_writer = JsonWriter::create(3);
+		CHECK(obj_writer->start_object(u8""));
+		CHECK_ERROR(obj_writer->start_object(u8""), EMPTY_OBJECT_FIELD_KEY);
+		CHECK_ERROR(obj_writer->start_array(u8""), EMPTY_OBJECT_FIELD_KEY);
 
 		bool b = false;
 		int32_t i32 = 0;
@@ -313,11 +312,11 @@ TEST_CASE_FIXTURE(JSONTests, "write errors") {
 	}
 
 	SUBCASE("ARRAY_ELEMENT_WITH_KEY") {
-		auto arr_writer = JsonWriter(3);
-		CHECK(arr_writer.start_object(u8""));
-		CHECK(arr_writer.start_array(u8"arr"));
-		CHECK_ERROR(arr_writer.start_object(u8"k"), ARRAY_ELEMENT_WITH_KEY);
-		CHECK_ERROR(arr_writer.start_array(u8"k"), ARRAY_ELEMENT_WITH_KEY);
+		auto arr_writer = JsonWriter::create(3);
+		CHECK(arr_writer->start_object(u8""));
+		CHECK(arr_writer->start_array(u8"arr"));
+		CHECK_ERROR(arr_writer->start_object(u8"k"), ARRAY_ELEMENT_WITH_KEY);
+		CHECK_ERROR(arr_writer->start_array(u8"k"), ARRAY_ELEMENT_WITH_KEY);
 
 		bool b = false;
 		int32_t i32 = 0;
@@ -334,7 +333,7 @@ TEST_CASE_FIXTURE(JSONTests, "write errors") {
 	}
 
 	SUBCASE("ROOT_OBJECT_WITH_KEY") {
-		auto obj_writer = JsonWriter(3);
-		CHECK_ERROR(obj_writer.start_object(u8"key"), ROOT_OBJECT_WITH_KEY);
+		auto obj_writer = JsonWriter::create(3);
+		CHECK_ERROR(obj_writer->start_object(u8"key"), ROOT_OBJECT_WITH_KEY);
 	}
 }

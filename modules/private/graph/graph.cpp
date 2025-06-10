@@ -144,51 +144,51 @@ namespace hana
 
 namespace hana
 {
-	Graph::Graph() {
-		pimpl = new GraphImpl;
+	RCUnique<Graph> Graph::create() {
+		return RCUnique<Graph>{reinterpret_cast<Graph*>(new GraphImpl)};
 	}
 
-	Graph::~Graph() noexcept {
-		delete pimpl;
+	void Graph::rc_delete() noexcept {
+		delete reinterpret_cast<GraphImpl*>(this);
 	}
 
 	void Graph::add_edge(GraphNode* from, GraphNode* to, GraphEdge* edge) {
-		pimpl->add_edge(from, to, edge);
+		reinterpret_cast<GraphImpl*>(this)->add_edge(from, to, edge);
 	}
 
 	void Graph::remove_vertex(GraphNode* node) noexcept {
-		pimpl->remove_vertex(node);
-	}
-
-	void Graph::remove_edge(GraphNode* from, GraphNode* to) noexcept {
-		pimpl->remove_edge(from, to);
+		reinterpret_cast<GraphImpl*>(this)->remove_vertex(node);
 	}
 
 	void Graph::remove_edge(GraphEdge* edge) noexcept {
-		pimpl->remove_edge(edge);
+		reinterpret_cast<GraphImpl*>(this)->remove_edge(edge);
+	}
+
+	void Graph::remove_edge(GraphNode* from, GraphNode* to) noexcept {
+		reinterpret_cast<GraphImpl*>(this)->remove_edge(from, to);
 	}
 
 	void Graph::clear() noexcept {
-		pimpl->clear();
+		reinterpret_cast<GraphImpl*>(this)->clear();
 	}
 
 	void Graph::foreach_neighbors(GraphNode* node, const std::function<void(GraphNode*)>& func) {
-		pimpl->foreach_neighbors(node, func);
+		reinterpret_cast<GraphImpl*>(this)->foreach_neighbors(node, func);
 	}
 
 	void Graph::foreach_inv_neighbors(GraphNode* node, const std::function<void(GraphNode*)>& func) {
-		pimpl->foreach_inv_neighbors(node, func);
+		reinterpret_cast<GraphImpl*>(this)->foreach_inv_neighbors(node, func);
 	}
 
 	void Graph::foreach_outgoing_edges(GraphNode* node, const std::function<void(GraphEdge*)>& func) {
-		pimpl->foreach_outgoing_edges(node, func);
+		reinterpret_cast<GraphImpl*>(this)->foreach_outgoing_edges(node, func);
 	}
 
 	void Graph::foreach_incoming_edges(GraphNode* node, const std::function<void(GraphEdge*)>& func) {
-		pimpl->foreach_incoming_edges(node, func);
+		reinterpret_cast<GraphImpl*>(this)->foreach_incoming_edges(node, func);
 	}
 
 	void Graph::foreach_vertex(const std::function<void(GraphNode*)>& func) {
-		pimpl->foreach_vertex(func);
+		reinterpret_cast<GraphImpl*>(this)->foreach_vertex(func);
 	}
 }

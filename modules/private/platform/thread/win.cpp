@@ -25,10 +25,10 @@ namespace hana
 		return 0;
 	}
 
-	Thread* Thread::init(Description desc) noexcept {
+	RCUnique<Thread> Thread::init(Description desc) noexcept {
 		const auto handle = _beginthreadex(nullptr, 0, &ThreadFunctionStatic, &desc, 0, nullptr);
 		assert(handle);
-		return reinterpret_cast<Thread*>(handle);
+		return RCUnique<Thread>{reinterpret_cast<Thread*>(handle)};
 	}
 
 	Thread* Thread::get_current_thread() noexcept {
@@ -61,7 +61,7 @@ namespace hana
 		WaitForSingleObject(this, INFINITE);
 	}
 
-	void Thread::destroy() noexcept {
+	void Thread::rc_delete() noexcept {
 		join();
 		CloseHandle(this);
 	}
