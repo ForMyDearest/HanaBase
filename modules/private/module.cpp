@@ -22,8 +22,8 @@ HANA_IMPLEMENT_DYNAMIC_MODULE(HanaBase, hana::HanaBaseModule)
 
 HANA_DYNAMIC_MODULE_METADATA(HanaBase) = u8R"(
 {
-    "api" : "1.0.0",
-    "version" : "0.1.0",
+    "api" : "0.0.1",
+    "version" : "1.0.0",
     "prettyname" : "base",
     "linking" : "HanaBase",
     "license" : "MIT",

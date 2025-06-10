@@ -28,6 +28,11 @@ hana::LogSystem is modified from fmtlog::logOnce.
 It just pushes static info along with formatted msg body onto the queue, which causes smaller program size but higher front-end latency.
 In my test, it has a front-end latency of approximately 75ns, while static fmtlog::log has a front-end latency of approximately 10ns.
 
+# RC
+
+An implementation of intrusive smart pointers, which stuffing an 8-byte counter block into the class header.
+Unlike std, only RCWeak will add weak reference, and resources of RC will be destroyed when both strong and weak reference counter reach 0.
+
 # TODO
 
 * [ ] Fix the bug that log pattern can't support "{{}}"

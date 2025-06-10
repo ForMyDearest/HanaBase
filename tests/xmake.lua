@@ -12,6 +12,7 @@ function UNIT_TEST(name)
     end
 end
 
+UNIT_TEST("rc")
 UNIT_TEST("misc")
 UNIT_TEST("json")
 UNIT_TEST("graph")
